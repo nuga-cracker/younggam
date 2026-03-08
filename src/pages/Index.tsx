@@ -356,6 +356,11 @@ const Index = () => {
         onNewSession={newSession}
         sessions={sessions}
         onDeleteSession={deleteSession}
+        onUpdateSessionCategory={updateSessionCategory}
+        customCategories={customCategories}
+        onAddCategory={addCategory}
+        onRenameCategory={renameCategory}
+        onDeleteCategory={deleteCategory}
       />
 
       <div className="flex-1 min-h-screen bg-gradient-to-b from-background to-secondary/30 flex flex-col items-center px-4 py-10">
