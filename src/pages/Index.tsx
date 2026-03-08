@@ -357,7 +357,35 @@ const Index = () => {
                     </div>
                   )}
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
+                    {members.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className="text-xs text-muted-foreground self-center mr-1">작성자:</span>
+                        <button
+                          onClick={() => setSelectedMember("")}
+                          className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                            !selectedMember
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-muted/50 text-muted-foreground border-border/50 hover:border-primary/50 hover:text-foreground"
+                          }`}
+                        >
+                          없음
+                        </button>
+                        {members.map((m) => (
+                          <button
+                            key={m}
+                            onClick={() => setSelectedMember(m)}
+                            className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                              selectedMember === m
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-muted/50 text-muted-foreground border-border/50 hover:border-primary/50 hover:text-foreground"
+                            }`}
+                          >
+                            {m}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     <div className="flex gap-2">
                       <Input
                         placeholder="짧은 생각을 입력하세요 (20자 이내)"
