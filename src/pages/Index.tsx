@@ -90,6 +90,8 @@ const Index = () => {
   const [members, setMembers] = useState<string[]>([]);
   const [newMember, setNewMember] = useState("");
   const [selectedMember, setSelectedMember] = useState<string>("");
+  const [chainData, setChainData] = useState<{ question: string; answer: string }[]>([]);
+  const [chainCurrentQ, setChainCurrentQ] = useState("");
 
   const { toggleSidebar } = useSidebar();
 
@@ -126,40 +128,51 @@ const Index = () => {
 
 
   const saveCurrentSession = useCallback(() => {
-    const activeKeyword = tab === "manual" ? keyword : randomKeyword;
-    const savedThoughts = tab === "manual" ? thoughts.map((t) => t.text) : randomThoughts;
-    if (!activeKeyword.trim()) return;
+    const isChain = mode === "chain";
+    const activeKeyword = isChain ? (chainCurrentQ || "꼬리질문") : (tab === "manual" ? keyword : randomKeyword);
+    const savedThoughts = isChain ? chainData.map((c) => c.answer) : (tab === "manual" ? thoughts.map((t) => t.text) : randomThoughts);
+    if (!activeKeyword.trim() && savedThoughts.length === 0) return;
+
+    const sessionTitle = isChain ? (chainData[0]?.question?.slice(0, 20) || "꼬리질문") : activeKeyword;
 
     if (activeSessionId) {
       setSessions((prev) =>
         prev.map((s) =>
           s.id === activeSessionId
-            ? { ...s, keyword: activeKeyword, thoughts: savedThoughts, title: activeKeyword, category: findCategory(activeKeyword) }
+            ? { ...s, keyword: activeKeyword, thoughts: savedThoughts, title: sessionTitle, category: isChain ? "꼬리질문" : findCategory(activeKeyword), chainData: isChain ? chainData : undefined, type: isChain ? "chain" : "mindmap" }
             : s
         )
       );
     } else {
+      if (!activeKeyword.trim() && savedThoughts.length === 0) return;
       const newSession: SavedSession = {
         id: genId(),
-        title: activeKeyword,
-        type: mode === "mindmap" ? "mindmap" : "chain",
-        category: findCategory(activeKeyword),
+        title: sessionTitle,
+        type: isChain ? "chain" : "mindmap",
+        category: isChain ? "꼬리질문" : findCategory(activeKeyword),
         keyword: activeKeyword,
         thoughts: savedThoughts,
+        chainData: isChain ? chainData : undefined,
         createdAt: Date.now(),
       };
       setSessions((prev) => [newSession, ...prev]);
       setActiveSessionId(newSession.id);
     }
-  }, [activeSessionId, keyword, thoughts, randomKeyword, randomThoughts, tab, mode]);
+  }, [activeSessionId, keyword, thoughts, randomKeyword, randomThoughts, tab, mode, chainData, chainCurrentQ]);
 
-  // Auto-save on keyword/thoughts change (debounced via effect)
+  // Auto-save on keyword/thoughts/chain change (debounced)
   useEffect(() => {
-    const activeKeyword = tab === "manual" ? keyword : randomKeyword;
-    if (!activeKeyword.trim()) return;
-    const timer = setTimeout(saveCurrentSession, 800);
-    return () => clearTimeout(timer);
-  }, [keyword, thoughts, randomKeyword, randomThoughts, saveCurrentSession]);
+    if (mode === "chain") {
+      if (chainData.length === 0) return;
+      const timer = setTimeout(saveCurrentSession, 800);
+      return () => clearTimeout(timer);
+    } else {
+      const activeKeyword = tab === "manual" ? keyword : randomKeyword;
+      if (!activeKeyword.trim()) return;
+      const timer = setTimeout(saveCurrentSession, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [keyword, thoughts, randomKeyword, randomThoughts, chainData, chainCurrentQ, saveCurrentSession, mode, tab]);
 
   const loadSession = (session: SavedSession) => {
     setActiveSessionId(session.id);
@@ -168,6 +181,13 @@ const Index = () => {
     setThoughts(session.thoughts.map((t) => typeof t === "string" ? { text: t } : t));
     setKeywordLocked(!!session.keyword);
     setShowMap(false);
+    if (session.type === "chain" && session.chainData) {
+      setChainData(session.chainData);
+      setChainCurrentQ(session.chainData[session.chainData.length - 1]?.question || "");
+    } else {
+      setChainData([]);
+      setChainCurrentQ("");
+    }
     if (session.type === "mindmap") {
       setTab("manual");
     }
@@ -185,6 +205,8 @@ const Index = () => {
     setShowMembers(false);
     setMembers([]);
     setNewMember("");
+    setChainData([]);
+    setChainCurrentQ("");
   };
 
   const addMember = () => {
@@ -663,7 +685,15 @@ const Index = () => {
             </TabsContent>
 
             <TabsContent value="chain" className="mt-6">
-              <ChainQuestion />
+              <ChainQuestion
+                key={activeSessionId || "new"}
+                initialChain={chainData.length > 0 ? chainData : undefined}
+                initialQuestion={chainCurrentQ || undefined}
+                onChainChange={(chain, currentQ) => {
+                  setChainData(chain);
+                  setChainCurrentQ(currentQ);
+                }}
+              />
             </TabsContent>
           </Tabs>
         </div>

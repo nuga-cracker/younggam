@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Plus, CornerDownRight, RotateCcw, RefreshCw, Eye, List, Download, Copy, SkipForward } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -121,13 +121,23 @@ const ChainTimeline = ({ chain }: { chain: QAPair[] }) => {
   );
 };
 
-const ChainQuestion = () => {
-  const [chain, setChain] = useState<QAPair[]>([]);
+interface ChainQuestionProps {
+  initialChain?: QAPair[];
+  initialQuestion?: string;
+  onChainChange?: (chain: QAPair[], currentQ: string) => void;
+}
+
+const ChainQuestion = ({ initialChain, initialQuestion, onChainChange }: ChainQuestionProps) => {
+  const [chain, setChain] = useState<QAPair[]>(initialChain || []);
   const [currentAnswer, setCurrentAnswer] = useState("");
   const [nextQuestion, setNextQuestion] = useState("");
-  const [started, setStarted] = useState(false);
-  const [currentQ, setCurrentQ] = useState("");
+  const [started, setStarted] = useState(!!(initialChain?.length || initialQuestion));
+  const [currentQ, setCurrentQ] = useState(initialQuestion || "");
   const [viewMode, setViewMode] = useState<"list" | "timeline">("list");
+  // Notify parent on chain changes
+  useEffect(() => {
+    if (started) onChainChange?.(chain, currentQ);
+  }, [chain, currentQ, started]);
 
   const startWithRandom = () => {
     const q = STARTER_QUESTIONS[Math.floor(Math.random() * STARTER_QUESTIONS.length)];
