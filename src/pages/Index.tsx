@@ -225,7 +225,7 @@ const Index = () => {
   };
 
   const activeKeyword = tab === "manual" ? keyword : randomKeyword;
-  const activeThoughts = tab === "manual" ? thoughts : randomThoughts;
+  const activeThoughts = tab === "manual" ? thoughts.map((t) => t.text) : randomThoughts;
   const canGenerate = activeKeyword.trim() && activeThoughts.length > 0;
   const overLimit = newThought.length > MAX_LENGTH;
 
