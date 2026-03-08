@@ -358,6 +358,42 @@ const Index = () => {
                   )}
 
                   <div className="space-y-2">
+                    {members.length > 0 && (
+                      <Collapsible>
+                        <CollapsibleTrigger className="w-full text-left">
+                          <span className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                            {selectedMember ? `작성자: ${selectedMember} ▾` : "작성자 지정 ▾"}
+                          </span>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <div className="flex flex-wrap gap-1.5 pt-2">
+                            <button
+                              onClick={() => setSelectedMember("")}
+                              className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                                !selectedMember
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "bg-muted/50 text-muted-foreground border-border/50 hover:border-primary/50 hover:text-foreground"
+                              }`}
+                            >
+                              없음
+                            </button>
+                            {members.map((m) => (
+                              <button
+                                key={m}
+                                onClick={() => setSelectedMember(m)}
+                                className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                                  selectedMember === m
+                                    ? "bg-primary text-primary-foreground border-primary"
+                                    : "bg-muted/50 text-muted-foreground border-border/50 hover:border-primary/50 hover:text-foreground"
+                                }`}
+                              >
+                                {m}
+                              </button>
+                            ))}
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    )}
                     <div className="flex gap-2">
                       <Input
                         placeholder="짧은 생각을 입력하세요 (20자 이내)"
