@@ -227,6 +227,25 @@ const Index = () => {
     if (activeSessionId === id) newSession();
   };
 
+  const updateSessionCategory = (sessionId: string, category: string) => {
+    setSessions((prev) => prev.map((s) => s.id === sessionId ? { ...s, category } : s));
+  };
+
+  const addCategory = (name: string) => {
+    if (customCategories.includes(name)) return;
+    setCustomCategories((prev) => [...prev, name]);
+  };
+
+  const renameCategory = (oldName: string, newName: string) => {
+    setCustomCategories((prev) => prev.map((c) => c === oldName ? newName : c));
+    setSessions((prev) => prev.map((s) => s.category === oldName ? { ...s, category: newName } : s));
+  };
+
+  const deleteCategory = (name: string) => {
+    setCustomCategories((prev) => prev.filter((c) => c !== name));
+    setSessions((prev) => prev.map((s) => s.category === name ? { ...s, category: "미분류" } : s));
+  };
+
   const addThought = () => {
     const trimmed = newThought.trim();
     if (!trimmed) return;
