@@ -17,7 +17,6 @@ const StatsDashboard = ({ sessions }: StatsDashboardProps) => {
       : 0;
 
     const maxDepth = chainSessions.reduce((max, s) => Math.max(max, s.chainData?.length || 0), 0);
-
     const totalThoughts = mindmapSessions.reduce((sum, s) => sum + s.thoughts.length, 0);
 
     const catMap = new Map<string, number>();
@@ -25,21 +24,19 @@ const StatsDashboard = ({ sessions }: StatsDashboardProps) => {
       const cat = s.category || "미분류";
       catMap.set(cat, (catMap.get(cat) || 0) + 1);
     });
-    const topCategories = Array.from(catMap.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
+    const topCategories = Array.from(catMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     const recentCount = sessions.filter((s) => s.createdAt > weekAgo).length;
 
-    // Heatmap: last 16 weeks (112 days)
+    // Heatmap: last 16 weeks
     const dayMs = 24 * 60 * 60 * 1000;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todayTs = today.getTime();
-    const todayDay = today.getDay(); // 0=Sun
+    const todayDay = today.getDay();
     const totalDays = 16 * 7;
-    const startOffset = totalDays - 1 + todayDay; // align to start on Sunday
+    const startOffset = totalDays - 1 + todayDay;
     const startTs = todayTs - startOffset * dayMs;
 
     const dayCountMap = new Map<string, number>();
@@ -64,7 +61,7 @@ const StatsDashboard = ({ sessions }: StatsDashboardProps) => {
     }
     if (week.length > 0) heatmapWeeks.push(week);
 
-    const maxCount = Math.max(1, ...sessions.map(() => 1), ...Array.from(dayCountMap.values()));
+    const maxCount = Math.max(1, ...Array.from(dayCountMap.values()));
 
     return { mindmapSessions: mindmapSessions.length, chainSessions: chainSessions.length, avgDepth, maxDepth, totalThoughts, topCategories, recentCount, heatmapWeeks, maxCount };
   }, [sessions]);
@@ -88,11 +85,35 @@ const StatsDashboard = ({ sessions }: StatsDashboardProps) => {
     { label: "최근 7일", value: `${stats.recentCount}개`, icon: Clock, color: "#C3B1E1" },
   ];
 
+  const getHeatColor = (level: number) => {
+    switch (level) {
+      case 1: return "hsl(var(--primary) / 0.25)";
+      case 2: return "hsl(var(--primary) / 0.5)";
+      case 3: return "hsl(var(--primary) / 0.75)";
+      case 4: return "hsl(var(--primary))";
+      default: return "hsl(var(--muted))";
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-card border-2 border-primary/20 rounded-xl p-6 shadow-sm">
         <h2 className="text-lg font-bold text-foreground mb-1">📊 나의 탐구 통계</h2>
         <p className="text-xs text-muted-foreground">지금까지의 사고 여정을 한눈에 확인하세요</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        {statCards.map(({ label, value, icon: Icon, color }) => (
+          <div key={label} className="bg-card border border-border/50 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${color}30` }}>
+                <Icon className="h-4 w-4" style={{ color }} />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-foreground">{value}</p>
+            <p className="text-xs text-muted-foreground">{label}</p>
+          </div>
+        ))}
       </div>
 
       {/* Activity Heatmap */}
@@ -114,14 +135,7 @@ const StatsDashboard = ({ sessions }: StatsDashboardProps) => {
                         <TooltipTrigger asChild>
                           <div
                             className="w-[11px] h-[11px] rounded-[2px] transition-colors"
-                            style={{
-                              backgroundColor:
-                                level === 0 ? "hsl(var(--muted))" :
-                                level === 1 ? "hsl(var(--primary) / 0.25)" :
-                                level === 2 ? "hsl(var(--primary) / 0.5)" :
-                                level === 3 ? "hsl(var(--primary) / 0.75)" :
-                                "hsl(var(--primary))",
-                            }}
+                            style={{ backgroundColor: getHeatColor(level) }}
                           />
                         </TooltipTrigger>
                         <TooltipContent side="top" className="text-xs">
@@ -141,31 +155,11 @@ const StatsDashboard = ({ sessions }: StatsDashboardProps) => {
             <div
               key={level}
               className="w-[10px] h-[10px] rounded-[2px]"
-              style={{
-                backgroundColor:
-                  level === 0 ? "hsl(var(--muted))" :
-                  level === 1 ? "hsl(var(--primary) / 0.25)" :
-                  level === 2 ? "hsl(var(--primary) / 0.5)" :
-                  level === 3 ? "hsl(var(--primary) / 0.75)" :
-                  "hsl(var(--primary))",
-              }}
+              style={{ backgroundColor: getHeatColor(level) }}
             />
           ))}
           <span className="text-[10px] text-muted-foreground ml-1">많음</span>
         </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        {statCards.map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="bg-card border border-border/50 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${color}30` }}>
-                <Icon className="h-4 w-4" style={{ color }} />
-              </div>
-            </div>
-            <p className="text-2xl font-bold text-foreground">{value}</p>
-            <p className="text-xs text-muted-foreground">{label}</p>
-          </div>
-        ))}
       </div>
 
       {stats.avgDepth > 0 && (
