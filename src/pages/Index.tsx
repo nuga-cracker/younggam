@@ -128,7 +128,7 @@ const Index = () => {
     setActiveSessionId(session.id);
     setMode(session.type === "chain" ? "chain" : "mindmap");
     setKeyword(session.keyword);
-    setThoughts(session.thoughts);
+    setThoughts(session.thoughts.map((t) => typeof t === "string" ? { text: t } : t));
     setKeywordLocked(!!session.keyword);
     setShowMap(false);
     if (session.type === "mindmap") {
