@@ -55,8 +55,22 @@ const ChainQuestion = () => {
       setCurrentQ(nextQuestion.trim());
       setNextQuestion("");
     } else {
-      // Auto-generate follow-up from the answer
-      setCurrentQ(`"${currentAnswer.trim()}" — 왜 그렇게 생각해?`);
+      const patterns = [
+        (a: string) => `"${a}" — 왜 그렇게 생각해?`,
+        (a: string) => `"${a}" — 그 생각의 근거는 뭘까?`,
+        (a: string) => `"${a}" — 반대로 생각하면 어떨까?`,
+        (a: string) => `"${a}" — 그게 정말 중요한 이유는?`,
+        (a: string) => `"${a}" — 다른 사람이라면 어떻게 답할까?`,
+        (a: string) => `"${a}" — 그래서 다음엔 뭘 하고 싶어?`,
+        (a: string) => `"${a}" — 만약 그게 불가능하다면?`,
+        (a: string) => `"${a}" — 언제부터 그렇게 느꼈어?`,
+        (a: string) => `"${a}" — 그 안에 숨겨진 감정은 뭘까?`,
+        (a: string) => `"${a}" — 5년 후에도 같은 답일까?`,
+        (a: string) => `"${a}" — 그걸 한 문장으로 정리하면?`,
+        (a: string) => `"${a}" — 누군가에게 설명한다면 어떻게 말할까?`,
+      ];
+      const pattern = patterns[Math.floor(Math.random() * patterns.length)];
+      setCurrentQ(pattern(currentAnswer.trim()));
     }
     setCurrentAnswer("");
   };
