@@ -2,9 +2,9 @@ import { useEffect, useRef } from "react";
 import mermaid from "mermaid";
 
 const PASTEL_COLORS = [
-  "#A7C7E7", "#F4B6C2", "#B5EAD7", "#FFE0AC",
-  "#C3B1E1", "#FFDAC1", "#B5D8EB", "#E2C2E9",
-  "#C7CEEA", "#F5CAC3",
+  "#D4E4F7", "#FAD9E0", "#D9F5E8", "#FFF0D6",
+  "#E0D6F0", "#FFE8D9", "#D9ECF5", "#F0DEF4",
+  "#E1E5F4", "#FAE3DE",
 ];
 
 mermaid.initialize({
@@ -70,9 +70,9 @@ ${lines.join("\n")}`;
           ".mindmap-node text"
         );
         texts.forEach((text) => {
-          text.style.fill = "#334155";
-          text.style.fontWeight = "500";
-          text.style.fontSize = "14px";
+          text.style.fill = "#1E293B";
+          text.style.fontWeight = "700";
+          text.style.fontSize = "15px";
         });
 
         // Style root text
@@ -80,9 +80,9 @@ ${lines.join("\n")}`;
           ".mindmap-node:first-child text"
         );
         if (rootText) {
-          rootText.style.fill = "#1E293B";
-          rootText.style.fontWeight = "700";
-          rootText.style.fontSize = "16px";
+          rootText.style.fill = "#0F172A";
+          rootText.style.fontWeight = "800";
+          rootText.style.fontSize = "18px";
         }
 
         // Color section lines
