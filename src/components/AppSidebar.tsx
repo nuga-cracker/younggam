@@ -62,8 +62,15 @@ const AppSidebar = ({ activeSessionId, onSelectSession, onNewSession, sessions, 
     );
   }, [sessions, search]);
 
-  const mindmapSessions = filtered.filter((s) => s.type === "mindmap");
-  const chainSessions = filtered.filter((s) => s.type === "chain");
+  const categories = useMemo(() => {
+    const map = new Map<string, SavedSession[]>();
+    filtered.forEach((s) => {
+      const cat = s.category || "미분류";
+      if (!map.has(cat)) map.set(cat, []);
+      map.get(cat)!.push(s);
+    });
+    return map;
+  }, [filtered]);
 
   return (
     <Sidebar collapsible="offcanvas">
