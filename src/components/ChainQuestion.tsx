@@ -297,19 +297,22 @@ const ChainQuestion = ({ initialChain, initialQuestion, onChainChange }: ChainQu
               onChange={(e) => setNextQuestion(e.target.value)}
               className="h-10 rounded-xl border border-border/40 focus-visible:ring-primary/20 bg-card/50 shadow-sm text-sm"
             />
-            <div className="flex gap-2">
-              <Button onClick={submitAnswer} disabled={!currentAnswer.trim()} className="flex-1 gap-2 h-11 rounded-xl font-semibold shadow-md">
-                <Plus className="h-4 w-4" />
-                답변하고 다음 질문으로
-              </Button>
-              <Button onClick={skipToNewQuestion} variant="outline" size="icon" className="h-11 w-11 rounded-xl shadow-sm" title="새 질문으로 건너뛰기">
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <Button onClick={submitAnswer} disabled={!currentAnswer.trim()} className="flex-1 gap-2 h-11 rounded-xl font-semibold shadow-md">
+                  <Plus className="h-4 w-4" />
+                  답변하고 다음 질문으로
+                </Button>
+                <Button onClick={rerollQuestion} variant="outline" size="icon" className="h-11 w-11 rounded-xl shadow-sm" title="질문 다시 선택">
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+                <Button onClick={reset} variant="outline" size="icon" className="h-11 w-11 rounded-xl shadow-sm" title="처음부터 다시">
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
+              </div>
+              <Button onClick={skipToNewQuestion} variant="ghost" className="w-full gap-2 h-10 rounded-xl text-sm text-muted-foreground hover:text-foreground">
                 <SkipForward className="h-4 w-4" />
-              </Button>
-              <Button onClick={rerollQuestion} variant="outline" size="icon" className="h-11 w-11 rounded-xl shadow-sm" title="질문 다시 선택">
-                <RefreshCw className="h-4 w-4" />
-              </Button>
-              <Button onClick={reset} variant="outline" size="icon" className="h-11 w-11 rounded-xl shadow-sm" title="처음부터 다시">
-                <RotateCcw className="h-4 w-4" />
+                새 질문으로 건너뛰기
               </Button>
             </div>
           </div>
