@@ -170,7 +170,7 @@ const Index = () => {
   const addThought = () => {
     const trimmed = newThought.trim();
     if (!trimmed) return;
-    setThoughts((prev) => [...prev, { text: trimmed }]);
+    setThoughts((prev) => [...prev, { text: trimmed, member: selectedMember || undefined }]);
     setNewThought("");
     setShowMap(false);
   };
