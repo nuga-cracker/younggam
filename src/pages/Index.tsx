@@ -589,16 +589,28 @@ const Index = () => {
                     {vizView === "matrix" && <PriorityMatrix keyword={activeKeyword} thoughts={activeThoughts} />}
                     {vizView === "wordcloud" && <WordCloud keyword={activeKeyword} thoughts={activeThoughts} />}
                   </div>
-                  <div className="flex gap-2">
-                    <Button onClick={savePng} variant="outline" className="flex-1 gap-2 h-11 rounded-xl">
-                      <Download className="h-4 w-4" />
-                      PNG로 저장
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button onClick={savePng} variant="outline" className="gap-2 h-10 rounded-xl text-xs">
+                      <Download className="h-3.5 w-3.5" />
+                      PNG
                     </Button>
-                    <Button onClick={copyPng} variant="outline" className="flex-1 gap-2 h-11 rounded-xl">
-                      <Copy className="h-4 w-4" />
+                    <Button onClick={copyPng} variant="outline" className="gap-2 h-10 rounded-xl text-xs">
+                      <Copy className="h-3.5 w-3.5" />
                       복사
                     </Button>
+                    <Button onClick={saveJson} variant="outline" className="gap-2 h-10 rounded-xl text-xs">
+                      <FileJson className="h-3.5 w-3.5" />
+                      JSON
+                    </Button>
+                    <Button onClick={saveMarkdown} variant="outline" className="gap-2 h-10 rounded-xl text-xs">
+                      <FileText className="h-3.5 w-3.5" />
+                      Markdown
+                    </Button>
                   </div>
+                  <Button onClick={shareUrl} variant="secondary" className="w-full gap-2 h-11 rounded-xl text-sm font-semibold">
+                    <Share2 className="h-4 w-4" />
+                    공유 링크 복사
+                  </Button>
 
                   <Dialog open={mapModalOpen} onOpenChange={setMapModalOpen}>
                     <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] h-[90vh] p-6 flex flex-col">
