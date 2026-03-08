@@ -139,7 +139,7 @@ const ChainQuestion = ({ initialChain, initialQuestion, onChainChange }: ChainQu
     if (started) onChainChange?.(chain, currentQ);
   }, [chain, currentQ, started]);
 
-
+  const startWithRandom = () => {
     const q = STARTER_QUESTIONS[Math.floor(Math.random() * STARTER_QUESTIONS.length)];
     setCurrentQ(q);
     setChain([]);
