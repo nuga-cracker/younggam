@@ -233,6 +233,43 @@ const Index = () => {
     }
   };
 
+  const saveJson = () => {
+    const data = { keyword: activeKeyword, thoughts: tab === "manual" ? thoughts : randomThoughts.map((t) => ({ text: t })), exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const link = document.createElement("a");
+    link.download = `mindmap-${activeKeyword || "영감"}.json`;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const saveMarkdown = () => {
+    const lines = [`# ${activeKeyword}`, ""];
+    const items = tab === "manual" ? thoughts : randomThoughts.map((t) => ({ text: t }));
+    items.forEach((t: any) => {
+      const member = t.member ? ` *(${t.member})*` : "";
+      lines.push(`- ${t.text || t}${member}`);
+    });
+    lines.push("", `> Exported from Inspiration Lab — ${new Date().toLocaleDateString("ko-KR")}`);
+    const blob = new Blob([lines.join("\n")], { type: "text/markdown" });
+    const link = document.createElement("a");
+    link.download = `mindmap-${activeKeyword || "영감"}.md`;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const shareUrl = () => {
+    const data = { k: activeKeyword, t: tab === "manual" ? thoughts.map((t) => (t.member ? `${t.member}|${t.text}` : t.text)) : randomThoughts };
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+    const url = `${window.location.origin}${window.location.pathname}#share=${encoded}`;
+    navigator.clipboard.writeText(url).then(() => {
+      alert("공유 링크가 클립보드에 복사되었습니다!");
+    }).catch(() => {
+      prompt("이 링크를 복사하세요:", url);
+    });
+  };
+
   const activeKeyword = tab === "manual" ? keyword : randomKeyword;
   const activeThoughts = tab === "manual" ? thoughts.map((t) => ({ text: t.text, member: t.member })) : randomThoughts.map((t) => ({ text: t }));
   const canGenerate = activeKeyword.trim() && activeThoughts.length > 0;
