@@ -303,7 +303,59 @@ const Index = () => {
                     />
                   )}
 
-                  <div className="space-y-1.5">
+                  {/* 멤버 추가 토글 */}
+                  {!showMembers ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowMembers(true)}
+                      className="gap-2 text-muted-foreground hover:text-foreground"
+                    >
+                      <Users className="h-4 w-4" />
+                      멤버 추가
+                    </Button>
+                  ) : (
+                    <div className="space-y-3 bg-muted/40 border border-border/50 rounded-xl p-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold text-foreground flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          참여 멤버
+                        </span>
+                        <button onClick={() => setShowMembers(false)} className="text-muted-foreground hover:text-foreground transition-colors">
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="이름 입력"
+                          value={newMember}
+                          maxLength={10}
+                          onChange={(e) => setNewMember(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && addMember()}
+                          className="flex-1 h-9 rounded-lg text-sm bg-card"
+                        />
+                        <Button onClick={addMember} size="sm" className="h-9 px-3 rounded-lg">
+                          <Plus className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                      {members.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {members.map((m) => (
+                            <span
+                              key={m}
+                              className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-medium px-3 py-1.5 rounded-full"
+                            >
+                              {m}
+                              <button onClick={() => removeMember(m)} className="hover:text-destructive transition-colors">
+                                <X className="h-3 w-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                     <div className="flex gap-2">
                       <Input
                         placeholder="짧은 생각을 입력하세요 (20자 이내)"
