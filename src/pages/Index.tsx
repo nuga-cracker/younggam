@@ -69,7 +69,7 @@ const Index = () => {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
   const [keyword, setKeyword] = useState("");
-  const [thoughts, setThoughts] = useState<string[]>([]);
+  const [thoughts, setThoughts] = useState<{ text: string; member?: string }[]>([]);
   const [newThought, setNewThought] = useState("");
   const [showMap, setShowMap] = useState(false);
   const [keywordLocked, setKeywordLocked] = useState(false);
