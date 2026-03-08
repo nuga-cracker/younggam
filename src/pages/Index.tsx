@@ -14,7 +14,7 @@ import ChainQuestion from "@/components/ChainQuestion";
 import ThemeToggle from "@/components/ThemeToggle";
 import StatsDashboard from "@/components/StatsDashboard";
 import OnboardingGuide from "@/components/OnboardingGuide";
-import AppSidebar, { SavedSession, loadSessions, saveSessions } from "@/components/AppSidebar";
+import AppSidebar, { SavedSession, loadSessions, saveSessions, loadCustomCategories, saveCustomCategories } from "@/components/AppSidebar";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 
 const MAX_LENGTH = 20;
