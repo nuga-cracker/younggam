@@ -360,10 +360,16 @@ const Index = () => {
                   <div ref={mapRef} className="border-2 border-border/40 rounded-2xl p-8 bg-card shadow-lg">
                     <CodeMindMap keyword={activeKeyword} thoughts={activeThoughts} />
                   </div>
-                  <Button onClick={savePng} variant="outline" className="w-full gap-2 h-11 rounded-xl">
-                    <Download className="h-4 w-4" />
-                    PNG로 저장
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button onClick={savePng} variant="outline" className="flex-1 gap-2 h-11 rounded-xl">
+                      <Download className="h-4 w-4" />
+                      PNG로 저장
+                    </Button>
+                    <Button onClick={copyPng} variant="outline" className="flex-1 gap-2 h-11 rounded-xl">
+                      <Copy className="h-4 w-4" />
+                      복사
+                    </Button>
+                  </div>
                 </div>
               )}
             </TabsContent>
