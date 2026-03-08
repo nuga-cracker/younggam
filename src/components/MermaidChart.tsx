@@ -2,18 +2,22 @@ import { useEffect, useRef } from "react";
 import mermaid from "mermaid";
 
 const PASTEL_COLORS = [
-  "#FFD6E0", "#FFE4C9", "#FFF3BF", "#D4F5D4",
-  "#C9E4FF", "#E0D4FF", "#FFD4F1", "#D4F5F5",
-  "#F5E6D0", "#E8F5C9",
+  "#A7C7E7", "#F4B6C2", "#B5EAD7", "#FFE0AC",
+  "#C3B1E1", "#FFDAC1", "#B5D8EB", "#E2C2E9",
+  "#C7CEEA", "#F5CAC3",
 ];
 
 mermaid.initialize({
   startOnLoad: false,
   theme: "base",
   themeVariables: {
-    primaryColor: PASTEL_COLORS[0],
-    lineColor: "#CBD5E1",
-    fontSize: "14px",
+    primaryColor: "#A7C7E7",
+    lineColor: "#94A3B8",
+    fontSize: "15px",
+    fontFamily: "'Pretendard', system-ui, -apple-system, sans-serif",
+  },
+  mindmap: {
+    padding: 16,
   },
 });
 
@@ -41,22 +45,53 @@ ${lines.join("\n")}`;
         const { svg } = await mermaid.render(id, chart);
         containerRef.current.innerHTML = svg;
 
-        // Apply random pastel colors to nodes
+        // Style the SVG
+        const svgEl = containerRef.current.querySelector("svg");
+        if (svgEl) {
+          svgEl.style.maxWidth = "100%";
+          svgEl.style.height = "auto";
+        }
+
+        // Apply colors to nodes
         const nodes = containerRef.current.querySelectorAll<SVGElement>(
           ".mindmap-node > .node-bkg"
         );
         nodes.forEach((node, i) => {
           const color = PASTEL_COLORS[i % PASTEL_COLORS.length];
           node.style.fill = color;
-          node.style.stroke = color;
+          node.style.stroke = "none";
+          node.style.filter = "drop-shadow(0 2px 8px rgba(0,0,0,0.08))";
+          node.setAttribute("rx", "12");
+          node.setAttribute("ry", "12");
         });
 
-        // Also color section lines
-        const sections = containerRef.current.querySelectorAll<SVGElement>(
+        // Style text
+        const texts = containerRef.current.querySelectorAll<SVGTextElement>(
+          ".mindmap-node text"
+        );
+        texts.forEach((text) => {
+          text.style.fill = "#334155";
+          text.style.fontWeight = "500";
+          text.style.fontSize = "14px";
+        });
+
+        // Style root text
+        const rootText = containerRef.current.querySelector<SVGTextElement>(
+          ".mindmap-node:first-child text"
+        );
+        if (rootText) {
+          rootText.style.fill = "#1E293B";
+          rootText.style.fontWeight = "700";
+          rootText.style.fontSize = "16px";
+        }
+
+        // Color section lines
+        const edges = containerRef.current.querySelectorAll<SVGElement>(
           ".section-root > path, .edge"
         );
-        sections.forEach((el) => {
+        edges.forEach((el) => {
           el.style.stroke = "#CBD5E1";
+          el.style.strokeWidth = "2";
         });
       } catch {
         containerRef.current.innerHTML =
@@ -69,7 +104,7 @@ ${lines.join("\n")}`;
   return (
     <div
       ref={containerRef}
-      className="flex justify-center w-full overflow-auto mindmap-container"
+      className="flex justify-center w-full overflow-auto py-4"
     />
   );
 };
