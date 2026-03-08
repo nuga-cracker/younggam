@@ -144,6 +144,20 @@ const Index = () => {
     setKeywordLocked(false);
     setRandomKeyword("");
     setRandomThoughts([]);
+    setShowMembers(false);
+    setMembers([]);
+    setNewMember("");
+  };
+
+  const addMember = () => {
+    const trimmed = newMember.trim();
+    if (!trimmed || members.includes(trimmed)) return;
+    setMembers((prev) => [...prev, trimmed]);
+    setNewMember("");
+  };
+
+  const removeMember = (name: string) => {
+    setMembers((prev) => prev.filter((m) => m !== name));
   };
 
   const deleteSession = (id: string) => {
