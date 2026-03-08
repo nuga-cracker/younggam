@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Trash2, Sparkles, Download, Shuffle, Pencil, Brain, MessageCircleQuestion, Menu, Copy, Users, X, Maximize2, LayoutGrid, Target, BarChart3, Cloud } from "lucide-react";
+import { Plus, Trash2, Sparkles, Download, Shuffle, Pencil, Brain, MessageCircleQuestion, Menu, Copy, Users, X, Maximize2, LayoutGrid, Target, BarChart3, Cloud, FileJson, FileText, Share2 } from "lucide-react";
 
 import { toPng } from "html-to-image";
 import { Button } from "@/components/ui/button";
@@ -96,7 +96,35 @@ const Index = () => {
   // Persist sessions
   useEffect(() => { saveSessions(sessions); }, [sessions]);
 
-  // Auto-save current work as a session
+  // Load shared session from URL hash
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash.startsWith("#share=")) return;
+    try {
+      const encoded = hash.slice(7);
+      const json = decodeURIComponent(escape(atob(encoded)));
+      const data = JSON.parse(json);
+      if (data.k) {
+        setKeyword(data.k);
+        setKeywordLocked(true);
+        if (Array.isArray(data.t)) {
+          setThoughts(data.t.map((item: string) => {
+            if (item.includes("|")) {
+              const [member, ...rest] = item.split("|");
+              return { text: rest.join("|"), member };
+            }
+            return { text: item };
+          }));
+        }
+        setTab("manual");
+        setMode("mindmap");
+        setShowMap(true);
+        window.location.hash = "";
+      }
+    } catch { /* ignore invalid hash */ }
+  }, []);
+
+
   const saveCurrentSession = useCallback(() => {
     const activeKeyword = tab === "manual" ? keyword : randomKeyword;
     const savedThoughts = tab === "manual" ? thoughts.map((t) => t.text) : randomThoughts;
@@ -231,6 +259,43 @@ const Index = () => {
     } catch {
       console.error("복사 실패");
     }
+  };
+
+  const saveJson = () => {
+    const data = { keyword: activeKeyword, thoughts: tab === "manual" ? thoughts : randomThoughts.map((t) => ({ text: t })), exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const link = document.createElement("a");
+    link.download = `mindmap-${activeKeyword || "영감"}.json`;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const saveMarkdown = () => {
+    const lines = [`# ${activeKeyword}`, ""];
+    const items = tab === "manual" ? thoughts : randomThoughts.map((t) => ({ text: t }));
+    items.forEach((t: any) => {
+      const member = t.member ? ` *(${t.member})*` : "";
+      lines.push(`- ${t.text || t}${member}`);
+    });
+    lines.push("", `> Exported from Inspiration Lab — ${new Date().toLocaleDateString("ko-KR")}`);
+    const blob = new Blob([lines.join("\n")], { type: "text/markdown" });
+    const link = document.createElement("a");
+    link.download = `mindmap-${activeKeyword || "영감"}.md`;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const shareUrl = () => {
+    const data = { k: activeKeyword, t: tab === "manual" ? thoughts.map((t) => (t.member ? `${t.member}|${t.text}` : t.text)) : randomThoughts };
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+    const url = `${window.location.origin}${window.location.pathname}#share=${encoded}`;
+    navigator.clipboard.writeText(url).then(() => {
+      alert("공유 링크가 클립보드에 복사되었습니다!");
+    }).catch(() => {
+      prompt("이 링크를 복사하세요:", url);
+    });
   };
 
   const activeKeyword = tab === "manual" ? keyword : randomKeyword;
@@ -552,16 +617,28 @@ const Index = () => {
                     {vizView === "matrix" && <PriorityMatrix keyword={activeKeyword} thoughts={activeThoughts} />}
                     {vizView === "wordcloud" && <WordCloud keyword={activeKeyword} thoughts={activeThoughts} />}
                   </div>
-                  <div className="flex gap-2">
-                    <Button onClick={savePng} variant="outline" className="flex-1 gap-2 h-11 rounded-xl">
-                      <Download className="h-4 w-4" />
-                      PNG로 저장
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button onClick={savePng} variant="outline" className="gap-2 h-10 rounded-xl text-xs">
+                      <Download className="h-3.5 w-3.5" />
+                      PNG
                     </Button>
-                    <Button onClick={copyPng} variant="outline" className="flex-1 gap-2 h-11 rounded-xl">
-                      <Copy className="h-4 w-4" />
+                    <Button onClick={copyPng} variant="outline" className="gap-2 h-10 rounded-xl text-xs">
+                      <Copy className="h-3.5 w-3.5" />
                       복사
                     </Button>
+                    <Button onClick={saveJson} variant="outline" className="gap-2 h-10 rounded-xl text-xs">
+                      <FileJson className="h-3.5 w-3.5" />
+                      JSON
+                    </Button>
+                    <Button onClick={saveMarkdown} variant="outline" className="gap-2 h-10 rounded-xl text-xs">
+                      <FileText className="h-3.5 w-3.5" />
+                      Markdown
+                    </Button>
                   </div>
+                  <Button onClick={shareUrl} variant="secondary" className="w-full gap-2 h-11 rounded-xl text-sm font-semibold">
+                    <Share2 className="h-4 w-4" />
+                    공유 링크 복사
+                  </Button>
 
                   <Dialog open={mapModalOpen} onOpenChange={setMapModalOpen}>
                     <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] h-[90vh] p-6 flex flex-col">
