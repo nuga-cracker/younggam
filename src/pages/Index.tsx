@@ -81,6 +81,7 @@ const Index = () => {
   const [showMembers, setShowMembers] = useState(false);
   const [members, setMembers] = useState<string[]>([]);
   const [newMember, setNewMember] = useState("");
+  const [selectedMember, setSelectedMember] = useState<string>("");
 
   const { toggleSidebar } = useSidebar();
 
