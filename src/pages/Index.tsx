@@ -74,6 +74,7 @@ const Index = () => {
   const [thoughts, setThoughts] = useState<{ text: string; member?: string }[]>([]);
   const [newThought, setNewThought] = useState("");
   const [showMap, setShowMap] = useState(false);
+  const [mapModalOpen, setMapModalOpen] = useState(false);
   const [keywordLocked, setKeywordLocked] = useState(false);
   const [tab, setTab] = useState("manual");
   const [mode, setMode] = useState("mindmap");
