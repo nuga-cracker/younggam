@@ -225,7 +225,8 @@ const Index = () => {
                         <span>{t}</span>
                       </li>
                     ))}
-                  </ul>
+                    </ul>
+                  </div>
                 </div>
               )}
             </div>
