@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Plus, CornerDownRight, RotateCcw, RefreshCw, Eye, List, Download, Copy } from "lucide-react";
+import { Plus, CornerDownRight, RotateCcw, RefreshCw, Eye, List, Download, Copy, SkipForward } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toPng } from "html-to-image";
@@ -136,6 +136,13 @@ const ChainQuestion = () => {
     setCurrentAnswer("");
     setNextQuestion("");
     setStarted(true);
+  };
+
+  const skipToNewQuestion = () => {
+    const q = STARTER_QUESTIONS[Math.floor(Math.random() * STARTER_QUESTIONS.length)];
+    setCurrentQ(q);
+    setCurrentAnswer("");
+    setNextQuestion("");
   };
 
   const rerollQuestion = () => {
@@ -284,6 +291,9 @@ const ChainQuestion = () => {
               <Button onClick={submitAnswer} disabled={!currentAnswer.trim()} className="flex-1 gap-2 h-11 rounded-xl font-semibold shadow-md">
                 <Plus className="h-4 w-4" />
                 답변하고 다음 질문으로
+              </Button>
+              <Button onClick={skipToNewQuestion} variant="outline" size="icon" className="h-11 w-11 rounded-xl shadow-sm" title="새 질문으로 건너뛰기">
+                <SkipForward className="h-4 w-4" />
               </Button>
               <Button onClick={rerollQuestion} variant="outline" size="icon" className="h-11 w-11 rounded-xl shadow-sm" title="질문 다시 선택">
                 <RefreshCw className="h-4 w-4" />
