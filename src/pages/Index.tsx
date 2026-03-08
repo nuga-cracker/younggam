@@ -4,7 +4,7 @@ import { toPng } from "html-to-image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import MermaidChart from "@/components/MermaidChart";
+import CodeMindMap from "@/components/CodeMindMap";
 import ChainQuestion from "@/components/ChainQuestion";
 import ThemeToggle from "@/components/ThemeToggle";
 import AppSidebar, { SavedSession, loadSessions, saveSessions } from "@/components/AppSidebar";
