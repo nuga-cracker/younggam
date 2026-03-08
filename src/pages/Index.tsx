@@ -284,6 +284,25 @@ const Index = () => {
                 </TabsList>
 
                 <TabsContent value="manual" className="space-y-6 mt-6">
+                  {keywordLocked ? (
+                    <div className="flex items-center justify-between bg-card border-2 border-primary/20 rounded-xl px-5 h-14 shadow-sm">
+                      <span className="text-lg font-bold text-foreground flex-1 text-center">{keyword}</span>
+                      <button onClick={() => setKeywordLocked(false)} className="text-muted-foreground hover:text-primary transition-colors ml-2">
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <Input
+                      placeholder="오늘의 영감 키워드 (20자 이내)"
+                      value={keyword}
+                      maxLength={MAX_LENGTH}
+                      autoFocus
+                      onChange={(e) => { setKeyword(e.target.value); setShowMap(false); }}
+                      onKeyDown={(e) => { if (e.key === "Enter" && keyword.trim()) setKeywordLocked(true); }}
+                      className="text-center text-lg h-14 rounded-xl border-2 border-primary/20 focus-visible:ring-primary/30 focus-visible:border-primary/50 bg-card shadow-sm transition-all"
+                    />
+                  )}
+
                   {/* 멤버 추가 토글 */}
                   {!showMembers ? (
                     <Button
@@ -335,24 +354,6 @@ const Index = () => {
                         </div>
                       )}
                     </div>
-                  )}
-                  {keywordLocked ? (
-                    <div className="flex items-center justify-between bg-card border-2 border-primary/20 rounded-xl px-5 h-14 shadow-sm">
-                      <span className="text-lg font-bold text-foreground flex-1 text-center">{keyword}</span>
-                      <button onClick={() => setKeywordLocked(false)} className="text-muted-foreground hover:text-primary transition-colors ml-2">
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <Input
-                      placeholder="오늘의 영감 키워드 (20자 이내)"
-                      value={keyword}
-                      maxLength={MAX_LENGTH}
-                      autoFocus
-                      onChange={(e) => { setKeyword(e.target.value); setShowMap(false); }}
-                      onKeyDown={(e) => { if (e.key === "Enter" && keyword.trim()) setKeywordLocked(true); }}
-                      className="text-center text-lg h-14 rounded-xl border-2 border-primary/20 focus-visible:ring-primary/30 focus-visible:border-primary/50 bg-card shadow-sm transition-all"
-                    />
                   )}
 
                   <div className="space-y-1.5">
