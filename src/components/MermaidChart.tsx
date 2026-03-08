@@ -2,9 +2,9 @@ import { useEffect, useRef } from "react";
 import mermaid from "mermaid";
 
 const PASTEL_COLORS = [
-  "#A7C7E7", "#F4B6C2", "#B5EAD7", "#FFE0AC",
-  "#C3B1E1", "#FFDAC1", "#B5D8EB", "#E2C2E9",
-  "#C7CEEA", "#F5CAC3",
+  "#D4E4F7", "#FAD9E0", "#D9F5E8", "#FFF0D6",
+  "#E0D6F0", "#FFE8D9", "#D9ECF5", "#F0DEF4",
+  "#E1E5F4", "#FAE3DE",
 ];
 
 mermaid.initialize({
