@@ -90,14 +90,14 @@ const Index = () => {
   // Auto-save current work as a session
   const saveCurrentSession = useCallback(() => {
     const activeKeyword = tab === "manual" ? keyword : randomKeyword;
-    const activeThoughts = tab === "manual" ? thoughts : randomThoughts;
+    const savedThoughts = tab === "manual" ? thoughts.map((t) => t.text) : randomThoughts;
     if (!activeKeyword.trim()) return;
 
     if (activeSessionId) {
       setSessions((prev) =>
         prev.map((s) =>
           s.id === activeSessionId
-            ? { ...s, keyword: activeKeyword, thoughts: activeThoughts, title: activeKeyword, category: findCategory(activeKeyword) }
+            ? { ...s, keyword: activeKeyword, thoughts: savedThoughts, title: activeKeyword, category: findCategory(activeKeyword) }
             : s
         )
       );
@@ -108,7 +108,7 @@ const Index = () => {
         type: mode === "mindmap" ? "mindmap" : "chain",
         category: findCategory(activeKeyword),
         keyword: activeKeyword,
-        thoughts: activeThoughts,
+        thoughts: savedThoughts,
         createdAt: Date.now(),
       };
       setSessions((prev) => [newSession, ...prev]);
