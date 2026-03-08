@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Plus, CornerDownRight, RotateCcw, RefreshCw, Eye, List, Download, Copy } from "lucide-react";
+import { Plus, CornerDownRight, RotateCcw, RefreshCw, Eye, List, Download, Copy, SkipForward } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toPng } from "html-to-image";
