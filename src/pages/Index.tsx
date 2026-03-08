@@ -685,7 +685,15 @@ const Index = () => {
             </TabsContent>
 
             <TabsContent value="chain" className="mt-6">
-              <ChainQuestion />
+              <ChainQuestion
+                key={activeSessionId || "new"}
+                initialChain={chainData.length > 0 ? chainData : undefined}
+                initialQuestion={chainCurrentQ || undefined}
+                onChainChange={(chain, currentQ) => {
+                  setChainData(chain);
+                  setChainCurrentQ(currentQ);
+                }}
+              />
             </TabsContent>
           </Tabs>
         </div>
