@@ -14,7 +14,7 @@ import ChainQuestion from "@/components/ChainQuestion";
 import ThemeToggle from "@/components/ThemeToggle";
 import StatsDashboard from "@/components/StatsDashboard";
 import OnboardingGuide from "@/components/OnboardingGuide";
-import AppSidebar, { SavedSession, loadSessions, saveSessions } from "@/components/AppSidebar";
+import AppSidebar, { SavedSession, loadSessions, saveSessions, loadCustomCategories, saveCustomCategories } from "@/components/AppSidebar";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 
 const MAX_LENGTH = 20;
@@ -72,6 +72,7 @@ const genId = () => crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`;
 
 const Index = () => {
   const [sessions, setSessions] = useState<SavedSession[]>(loadSessions);
+  const [customCategories, setCustomCategories] = useState<string[]>(loadCustomCategories);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
   const [keyword, setKeyword] = useState("");
@@ -97,6 +98,7 @@ const Index = () => {
 
   // Persist sessions
   useEffect(() => { saveSessions(sessions); }, [sessions]);
+  useEffect(() => { saveCustomCategories(customCategories); }, [customCategories]);
 
   // Load shared session from URL hash
   useEffect(() => {
@@ -225,6 +227,25 @@ const Index = () => {
     if (activeSessionId === id) newSession();
   };
 
+  const updateSessionCategory = (sessionId: string, category: string) => {
+    setSessions((prev) => prev.map((s) => s.id === sessionId ? { ...s, category } : s));
+  };
+
+  const addCategory = (name: string) => {
+    if (customCategories.includes(name)) return;
+    setCustomCategories((prev) => [...prev, name]);
+  };
+
+  const renameCategory = (oldName: string, newName: string) => {
+    setCustomCategories((prev) => prev.map((c) => c === oldName ? newName : c));
+    setSessions((prev) => prev.map((s) => s.category === oldName ? { ...s, category: newName } : s));
+  };
+
+  const deleteCategory = (name: string) => {
+    setCustomCategories((prev) => prev.filter((c) => c !== name));
+    setSessions((prev) => prev.map((s) => s.category === name ? { ...s, category: "미분류" } : s));
+  };
+
   const addThought = () => {
     const trimmed = newThought.trim();
     if (!trimmed) return;
@@ -335,6 +356,11 @@ const Index = () => {
         onNewSession={newSession}
         sessions={sessions}
         onDeleteSession={deleteSession}
+        onUpdateSessionCategory={updateSessionCategory}
+        customCategories={customCategories}
+        onAddCategory={addCategory}
+        onRenameCategory={renameCategory}
+        onDeleteCategory={deleteCategory}
       />
 
       <div className="flex-1 min-h-screen bg-gradient-to-b from-background to-secondary/30 flex flex-col items-center px-4 py-10">
