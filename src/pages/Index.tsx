@@ -610,8 +610,6 @@ const Index = () => {
                     {[
                       { key: "mindmap", label: "마인드맵", icon: Brain },
                       { key: "affinity", label: "어피니티", icon: LayoutGrid },
-                      { key: "swot", label: "SWOT", icon: Target },
-                      { key: "matrix", label: "매트릭스", icon: BarChart3 },
                       { key: "wordcloud", label: "워드클라우드", icon: Cloud },
                     ].map(({ key, label, icon: Icon }) => (
                       <button
