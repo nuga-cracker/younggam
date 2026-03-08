@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Brain, MessageCircleQuestion, TrendingUp, Clock, Award, Layers } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { SavedSession } from "@/components/AppSidebar";
 
 interface StatsDashboardProps {
