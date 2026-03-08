@@ -20,7 +20,6 @@ const StatsDashboard = ({ sessions }: StatsDashboardProps) => {
 
     const totalThoughts = mindmapSessions.reduce((sum, s) => sum + s.thoughts.length, 0);
 
-    // Category frequency
     const catMap = new Map<string, number>();
     sessions.forEach((s) => {
       const cat = s.category || "미분류";
@@ -30,11 +29,44 @@ const StatsDashboard = ({ sessions }: StatsDashboardProps) => {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
 
-    // Recent activity (last 7 days)
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     const recentCount = sessions.filter((s) => s.createdAt > weekAgo).length;
 
-    return { mindmapSessions: mindmapSessions.length, chainSessions: chainSessions.length, avgDepth, maxDepth, totalThoughts, topCategories, recentCount };
+    // Heatmap: last 16 weeks (112 days)
+    const dayMs = 24 * 60 * 60 * 1000;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayTs = today.getTime();
+    const todayDay = today.getDay(); // 0=Sun
+    const totalDays = 16 * 7;
+    const startOffset = totalDays - 1 + todayDay; // align to start on Sunday
+    const startTs = todayTs - startOffset * dayMs;
+
+    const dayCountMap = new Map<string, number>();
+    sessions.forEach((s) => {
+      const d = new Date(s.createdAt);
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      dayCountMap.set(key, (dayCountMap.get(key) || 0) + 1);
+    });
+
+    const heatmapWeeks: { date: Date; count: number }[][] = [];
+    let week: { date: Date; count: number }[] = [];
+    for (let i = 0; i <= startOffset + (6 - todayDay); i++) {
+      const date = new Date(startTs + i * dayMs);
+      const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      const count = dayCountMap.get(key) || 0;
+      const isFuture = date.getTime() > todayTs;
+      week.push({ date, count: isFuture ? -1 : count });
+      if (week.length === 7) {
+        heatmapWeeks.push(week);
+        week = [];
+      }
+    }
+    if (week.length > 0) heatmapWeeks.push(week);
+
+    const maxCount = Math.max(1, ...sessions.map(() => 1), ...Array.from(dayCountMap.values()));
+
+    return { mindmapSessions: mindmapSessions.length, chainSessions: chainSessions.length, avgDepth, maxDepth, totalThoughts, topCategories, recentCount, heatmapWeeks, maxCount };
   }, [sessions]);
 
   if (sessions.length === 0) {
