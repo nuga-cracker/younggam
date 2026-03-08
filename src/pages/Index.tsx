@@ -181,6 +181,13 @@ const Index = () => {
     setThoughts(session.thoughts.map((t) => typeof t === "string" ? { text: t } : t));
     setKeywordLocked(!!session.keyword);
     setShowMap(false);
+    if (session.type === "chain" && session.chainData) {
+      setChainData(session.chainData);
+      setChainCurrentQ(session.chainData[session.chainData.length - 1]?.question || "");
+    } else {
+      setChainData([]);
+      setChainCurrentQ("");
+    }
     if (session.type === "mindmap") {
       setTab("manual");
     }
