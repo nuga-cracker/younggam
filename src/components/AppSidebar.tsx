@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Brain, MessageCircleQuestion, Search, Plus, Trash2, FileText } from "lucide-react";
+import { Brain, MessageCircleQuestion, Search, Plus, Trash2, FileText, Tag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,7 @@ export interface SavedSession {
   id: string;
   title: string;
   type: "mindmap" | "chain";
+  category?: string;
   keyword: string;
   thoughts: string[];
   chainData?: { question: string; answer: string }[];
@@ -61,8 +62,15 @@ const AppSidebar = ({ activeSessionId, onSelectSession, onNewSession, sessions, 
     );
   }, [sessions, search]);
 
-  const mindmapSessions = filtered.filter((s) => s.type === "mindmap");
-  const chainSessions = filtered.filter((s) => s.type === "chain");
+  const categories = useMemo(() => {
+    const map = new Map<string, SavedSession[]>();
+    filtered.forEach((s) => {
+      const cat = s.category || "미분류";
+      if (!map.has(cat)) map.set(cat, []);
+      map.get(cat)!.push(s);
+    });
+    return map;
+  }, [filtered]);
 
   return (
     <Sidebar collapsible="offcanvas">
@@ -83,21 +91,27 @@ const AppSidebar = ({ activeSessionId, onSelectSession, onNewSession, sessions, 
       </SidebarHeader>
 
       <SidebarContent>
-        {mindmapSessions.length > 0 && (
-          <SidebarGroup>
+        {Array.from(categories.entries()).map(([cat, catSessions]) => (
+          <SidebarGroup key={cat}>
             <SidebarGroupLabel>
-              <Brain className="h-3.5 w-3.5 mr-1.5" />
-              마인드맵
+              <Tag className="h-3.5 w-3.5 mr-1.5" />
+              {cat}
+              <span className="ml-auto text-[10px] text-muted-foreground">{catSessions.length}</span>
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {mindmapSessions.map((s) => (
+                {catSessions.map((s) => (
                   <SidebarMenuItem key={s.id}>
                     <SidebarMenuButton
                       isActive={activeSessionId === s.id}
                       onClick={() => onSelectSession(s)}
                       className="group/item"
                     >
+                      {s.type === "mindmap" ? (
+                        <Brain className="h-3 w-3 shrink-0 text-muted-foreground" />
+                      ) : (
+                        <MessageCircleQuestion className="h-3 w-3 shrink-0 text-muted-foreground" />
+                      )}
                       <span className="flex-1 truncate text-xs">{s.title || s.keyword}</span>
                       <button
                         onClick={(e) => { e.stopPropagation(); onDeleteSession(s.id); }}
@@ -111,37 +125,7 @@ const AppSidebar = ({ activeSessionId, onSelectSession, onNewSession, sessions, 
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-        )}
-
-        {chainSessions.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel>
-              <MessageCircleQuestion className="h-3.5 w-3.5 mr-1.5" />
-              꼬리질문
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {chainSessions.map((s) => (
-                  <SidebarMenuItem key={s.id}>
-                    <SidebarMenuButton
-                      isActive={activeSessionId === s.id}
-                      onClick={() => onSelectSession(s)}
-                      className="group/item"
-                    >
-                      <span className="flex-1 truncate text-xs">{s.title || s.keyword}</span>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); onDeleteSession(s.id); }}
-                        className="opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+        ))}
 
         {filtered.length === 0 && (
           <div className="px-4 py-8 text-center text-xs text-muted-foreground">
