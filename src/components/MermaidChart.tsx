@@ -70,9 +70,9 @@ ${lines.join("\n")}`;
           ".mindmap-node text"
         );
         texts.forEach((text) => {
-          text.style.fill = "#334155";
-          text.style.fontWeight = "500";
-          text.style.fontSize = "14px";
+          text.style.fill = "#1E293B";
+          text.style.fontWeight = "700";
+          text.style.fontSize = "15px";
         });
 
         // Style root text
