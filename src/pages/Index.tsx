@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Trash2, Sparkles, Download, Shuffle, Pencil, Brain, MessageCircleQuestion, Menu } from "lucide-react";
+import { Plus, Trash2, Sparkles, Download, Shuffle, Pencil, Brain, MessageCircleQuestion, Menu, Copy } from "lucide-react";
 import { toPng } from "html-to-image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -188,6 +188,18 @@ const Index = () => {
     }
   };
 
+  const copyPng = async () => {
+    if (!mapRef.current) return;
+    try {
+      const dataUrl = await toPng(mapRef.current, { backgroundColor: "#ffffff" });
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+    } catch {
+      console.error("복사 실패");
+    }
+  };
+
   const activeKeyword = tab === "manual" ? keyword : randomKeyword;
   const activeThoughts = tab === "manual" ? thoughts : randomThoughts;
   const canGenerate = activeKeyword.trim() && activeThoughts.length > 0;
@@ -348,10 +360,16 @@ const Index = () => {
                   <div ref={mapRef} className="border-2 border-border/40 rounded-2xl p-8 bg-card shadow-lg">
                     <CodeMindMap keyword={activeKeyword} thoughts={activeThoughts} />
                   </div>
-                  <Button onClick={savePng} variant="outline" className="w-full gap-2 h-11 rounded-xl">
-                    <Download className="h-4 w-4" />
-                    PNG로 저장
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button onClick={savePng} variant="outline" className="flex-1 gap-2 h-11 rounded-xl">
+                      <Download className="h-4 w-4" />
+                      PNG로 저장
+                    </Button>
+                    <Button onClick={copyPng} variant="outline" className="flex-1 gap-2 h-11 rounded-xl">
+                      <Copy className="h-4 w-4" />
+                      복사
+                    </Button>
+                  </div>
                 </div>
               )}
             </TabsContent>
