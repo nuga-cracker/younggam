@@ -9,8 +9,7 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/component
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import CodeMindMap from "@/components/CodeMindMap";
 import AffinityDiagram from "@/components/AffinityDiagram";
-import SwotAnalysis from "@/components/SwotAnalysis";
-import PriorityMatrix from "@/components/PriorityMatrix";
+import WordCloud from "@/components/WordCloud";
 import WordCloud from "@/components/WordCloud";
 import ChainQuestion from "@/components/ChainQuestion";
 import ThemeToggle from "@/components/ThemeToggle";
