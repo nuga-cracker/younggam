@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Plus, CornerDownRight, RotateCcw, RefreshCw } from "lucide-react";
+import { useState, useRef } from "react";
+import { Plus, CornerDownRight, RotateCcw, RefreshCw, Eye, List, Download, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toPng } from "html-to-image";
 
 const MAX_LENGTH = 40;
 
@@ -21,12 +22,112 @@ interface QAPair {
   answer: string;
 }
 
+const DOTS = ["#A7C7E7","#F4B6C2","#B5EAD7","#FFE0AC","#C3B1E1","#FFDAC1","#B5D8EB","#E2C2E9","#C7CEEA","#F5CAC3"];
+
+const ChainTimeline = ({ chain }: { chain: QAPair[] }) => {
+  const timelineRef = useRef<HTMLDivElement>(null);
+
+  const savePng = async () => {
+    if (!timelineRef.current) return;
+    try {
+      const dataUrl = await toPng(timelineRef.current, { backgroundColor: "#ffffff" });
+      const link = document.createElement("a");
+      link.download = `chain-timeline.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch { /* ignore */ }
+  };
+
+  const copyPng = async () => {
+    if (!timelineRef.current) return;
+    try {
+      const dataUrl = await toPng(timelineRef.current, { backgroundColor: "#ffffff" });
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+    } catch { /* ignore */ }
+  };
+
+  if (chain.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      <div ref={timelineRef} className="bg-card border-2 border-border/40 rounded-2xl p-6 shadow-lg">
+        <p className="text-xs font-bold text-muted-foreground mb-5 tracking-wide">사고의 흐름 타임라인</p>
+        <div className="relative">
+          {/* Vertical line */}
+          <div className="absolute left-[15px] top-2 bottom-2 w-0.5 bg-gradient-to-b from-primary/60 via-primary/30 to-primary/10 rounded-full" />
+
+          {chain.map((pair, i) => (
+            <div key={i} className="relative pl-10 pb-6 last:pb-0">
+              {/* Dot */}
+              <div
+                className="absolute left-[9px] top-1.5 w-[14px] h-[14px] rounded-full border-2 border-card shadow-sm"
+                style={{ backgroundColor: DOTS[i % 10] }}
+              />
+
+              {/* Arrow connector */}
+              {i < chain.length - 1 && (
+                <div className="absolute left-[13px] top-[22px] w-0.5 h-[calc(100%-18px)]" />
+              )}
+
+              {/* Q&A card */}
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-primary/70 bg-primary/10 px-2 py-0.5 rounded-full">
+                    Q{i + 1}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {i === 0 ? "시작 질문" : `${i}단계 깊이`}
+                  </span>
+                </div>
+                <p className="text-sm font-semibold text-foreground leading-snug" style={{ fontFamily: "'Pretendard', system-ui, sans-serif" }}>
+                  {pair.question}
+                </p>
+                <div className="bg-muted/50 border border-border/30 rounded-lg px-3 py-2">
+                  <p className="text-sm text-foreground/80" style={{ fontFamily: "'Pretendard', system-ui, sans-serif" }}>
+                    {pair.answer}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* Final depth marker */}
+          <div className="relative pl-10 pt-2">
+            <div
+              className="absolute left-[7px] top-3 w-[18px] h-[18px] rounded-full border-2 border-primary/40 bg-primary/20 flex items-center justify-center"
+            >
+              <span className="text-[8px] font-bold text-primary">{chain.length}</span>
+            </div>
+            <p className="text-xs font-semibold text-primary/60 pt-0.5">
+              사고의 깊이: {chain.length}단계 도달
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <Button onClick={savePng} variant="outline" className="flex-1 gap-2 h-10 rounded-xl text-xs">
+          <Download className="h-3.5 w-3.5" />
+          PNG 저장
+        </Button>
+        <Button onClick={copyPng} variant="outline" className="flex-1 gap-2 h-10 rounded-xl text-xs">
+          <Copy className="h-3.5 w-3.5" />
+          복사
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 const ChainQuestion = () => {
   const [chain, setChain] = useState<QAPair[]>([]);
   const [currentAnswer, setCurrentAnswer] = useState("");
   const [nextQuestion, setNextQuestion] = useState("");
   const [started, setStarted] = useState(false);
   const [currentQ, setCurrentQ] = useState("");
+  const [viewMode, setViewMode] = useState<"list" | "timeline">("list");
 
   const startWithRandom = () => {
     const q = STARTER_QUESTIONS[Math.floor(Math.random() * STARTER_QUESTIONS.length)];
@@ -81,9 +182,8 @@ const ChainQuestion = () => {
     setNextQuestion("");
     setStarted(false);
     setCurrentQ("");
+    setViewMode("list");
   };
-
-  const DOTS = ["#A7C7E7","#F4B6C2","#B5EAD7","#FFE0AC","#C3B1E1","#FFDAC1","#B5D8EB","#E2C2E9","#C7CEEA","#F5CAC3"];
 
   return (
     <div className="space-y-6">
@@ -103,8 +203,36 @@ const ChainQuestion = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Chain history */}
+          {/* View mode toggle */}
           {chain.length > 0 && (
+            <div className="flex gap-1.5">
+              <button
+                onClick={() => setViewMode("list")}
+                className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors font-semibold ${
+                  viewMode === "list"
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/50 text-muted-foreground border-border/50 hover:border-primary/50 hover:text-foreground"
+                }`}
+              >
+                <List className="h-3.5 w-3.5" />
+                목록
+              </button>
+              <button
+                onClick={() => setViewMode("timeline")}
+                className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors font-semibold ${
+                  viewMode === "timeline"
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/50 text-muted-foreground border-border/50 hover:border-primary/50 hover:text-foreground"
+                }`}
+              >
+                <Eye className="h-3.5 w-3.5" />
+                타임라인
+              </button>
+            </div>
+          )}
+
+          {/* Chain history - list view */}
+          {viewMode === "list" && chain.length > 0 && (
             <div className="space-y-3">
               {chain.map((pair, i) => (
                 <div key={i} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -125,6 +253,9 @@ const ChainQuestion = () => {
               ))}
             </div>
           )}
+
+          {/* Chain history - timeline view */}
+          {viewMode === "timeline" && <ChainTimeline chain={chain} />}
 
           {/* Current question */}
           <div className="bg-card border-2 border-primary/20 rounded-xl p-5 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -164,7 +295,7 @@ const ChainQuestion = () => {
           </div>
 
           {/* Depth indicator */}
-          {chain.length > 0 && (
+          {chain.length > 0 && viewMode === "list" && (
             <div className="text-center">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent text-accent-foreground text-xs font-medium">
                 🔗 사고의 깊이: {chain.length}단계
