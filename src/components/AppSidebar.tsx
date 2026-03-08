@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { Brain, MessageCircleQuestion, Search, Plus, Trash2, FileText, Tag } from "lucide-react";
+import { Brain, MessageCircleQuestion, Search, Plus, Trash2, FileText, Tag, Download } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
