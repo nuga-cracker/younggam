@@ -19,6 +19,7 @@ export interface SavedSession {
   id: string;
   title: string;
   type: "mindmap" | "chain";
+  category?: string;
   keyword: string;
   thoughts: string[];
   chainData?: { question: string; answer: string }[];
