@@ -1,8 +1,13 @@
 import { useMemo } from "react";
 
+interface ThoughtItem {
+  text: string;
+  member?: string;
+}
+
 interface CodeMindMapProps {
   keyword: string;
-  thoughts: string[];
+  thoughts: ThoughtItem[];
 }
 
 const NODE_COLORS = [
@@ -21,25 +26,28 @@ const CodeMindMap = ({ keyword, thoughts }: CodeMindMapProps) => {
     const count = thoughts.length;
     if (count === 0) return { nodes: [], lines: [], width: 400, height: 200 };
 
-    const rootX = 170;
-    const rootY = count <= 4 ? 140 : (count * 68) / 2;
-    const rootW = Math.min(keyword.length * 16 + 48, 240);
-    const rootH = 52;
+    const rootX = 180;
+    const rootY = count <= 4 ? 150 : (count * 74) / 2;
+    const rootW = Math.min(keyword.length * 18 + 56, 260);
+    const rootH = 56;
 
-    const childX = 420;
-    const spacing = 72;
+    const childX = 450;
+    const spacing = 78;
     const totalH = (count - 1) * spacing;
     const startY = rootY - totalH / 2;
 
     const nodes = thoughts.map((t, i) => {
-      const w = Math.min(t.length * 14 + 48, 260);
+      const displayText = t.member ? `${t.member}: ${t.text}` : t.text;
+      const w = Math.min(displayText.length * 15 + 56, 320);
       const y = startY + i * spacing;
       return {
-        label: t,
+        label: t.text,
+        member: t.member,
+        displayText,
         x: childX,
         y,
         w,
-        h: 46,
+        h: 50,
         color: NODE_COLORS[i % NODE_COLORS.length],
       };
     });
@@ -59,7 +67,7 @@ const CodeMindMap = ({ keyword, thoughts }: CodeMindMapProps) => {
       rootX, rootY, rootW, rootH,
       nodes,
       lines,
-      width: Math.max(maxRight, 600),
+      width: Math.max(maxRight, 640),
       height: maxBottom - minTop,
       offsetY: -minTop,
     };
@@ -76,7 +84,7 @@ const CodeMindMap = ({ keyword, thoughts }: CodeMindMapProps) => {
         height={height}
         viewBox={`0 0 ${width} ${height}`}
         className="max-w-full h-auto"
-        style={{ minHeight: 200 }}
+        style={{ minHeight: 220 }}
       >
         <defs>
           <filter id="node-shadow" x="-20%" y="-20%" width="140%" height="140%">
@@ -111,8 +119,8 @@ const CodeMindMap = ({ keyword, thoughts }: CodeMindMapProps) => {
               y={rootY - rootH / 2}
               width={rootW}
               height={rootH}
-              rx={12}
-              ry={12}
+              rx={14}
+              ry={14}
               fill="hsl(220, 55%, 50%)"
               stroke="hsl(220, 55%, 40%)"
               strokeWidth="2"
@@ -123,7 +131,7 @@ const CodeMindMap = ({ keyword, thoughts }: CodeMindMapProps) => {
               textAnchor="middle"
               dominantBaseline="central"
               fill="white"
-              fontSize="16"
+              fontSize="18"
               fontWeight="800"
               fontFamily="'Pretendard', system-ui, sans-serif"
             >
@@ -139,24 +147,53 @@ const CodeMindMap = ({ keyword, thoughts }: CodeMindMapProps) => {
                 y={n.y - n.h / 2}
                 width={n.w}
                 height={n.h}
-                rx={10}
-                ry={10}
+                rx={12}
+                ry={12}
                 fill={n.color.bg}
                 stroke={n.color.border}
                 strokeWidth="1.5"
               />
-              <text
-                x={n.x}
-                y={n.y + 1}
-                textAnchor="middle"
-                dominantBaseline="central"
-                fill={n.color.text}
-                fontSize="14"
-                fontWeight="700"
-                fontFamily="'Pretendard', system-ui, sans-serif"
-              >
-                {n.label}
-              </text>
+              {n.member ? (
+                <>
+                  <text
+                    x={n.x - n.w / 2 + 20}
+                    y={n.y + 1}
+                    textAnchor="start"
+                    dominantBaseline="central"
+                    fill={n.color.border}
+                    fontSize="13"
+                    fontWeight="700"
+                    fontFamily="'Pretendard', system-ui, sans-serif"
+                  >
+                    {n.member}
+                  </text>
+                  <text
+                    x={n.x - n.w / 2 + 20 + n.member.length * 9 + 6}
+                    y={n.y + 1}
+                    textAnchor="start"
+                    dominantBaseline="central"
+                    fill={n.color.text}
+                    fontSize="15"
+                    fontWeight="700"
+                    fontFamily="'Pretendard', system-ui, sans-serif"
+                  >
+                    {n.label}
+                  </text>
+                </>
+              ) : (
+                <text
+                  x={n.x}
+                  y={n.y + 1}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fill={n.color.text}
+                  fontSize="15"
+                  fontWeight="700"
+                  fontFamily="'Pretendard', system-ui, sans-serif"
+                >
+                  {n.label}
+                </text>
+              )}
             </g>
           ))}
         </g>
