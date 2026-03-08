@@ -363,7 +363,7 @@ const Index = () => {
 
         <div className="w-full max-w-lg space-y-6">
           <Tabs value={mode} onValueChange={(v) => { setMode(v); setShowMap(false); }}>
-            <TabsList className="w-full grid grid-cols-2 h-12 rounded-xl bg-muted/80 p-1">
+            <TabsList className="w-full grid grid-cols-3 h-12 rounded-xl bg-muted/80 p-1">
               <TabsTrigger value="mindmap" className="rounded-lg text-sm font-bold gap-2 h-full data-[state=active]:shadow-md">
                 <Brain className="h-4 w-4" />
                 마인드맵
@@ -371,6 +371,10 @@ const Index = () => {
               <TabsTrigger value="chain" className="rounded-lg text-sm font-bold gap-2 h-full data-[state=active]:shadow-md">
                 <MessageCircleQuestion className="h-4 w-4" />
                 꼬리질문
+              </TabsTrigger>
+              <TabsTrigger value="stats" className="rounded-lg text-sm font-bold gap-2 h-full data-[state=active]:shadow-md">
+                <TrendingUp className="h-4 w-4" />
+                통계
               </TabsTrigger>
             </TabsList>
 
