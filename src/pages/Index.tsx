@@ -72,6 +72,7 @@ const genId = () => crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`;
 
 const Index = () => {
   const [sessions, setSessions] = useState<SavedSession[]>(loadSessions);
+  const [customCategories, setCustomCategories] = useState<string[]>(loadCustomCategories);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
   const [keyword, setKeyword] = useState("");
