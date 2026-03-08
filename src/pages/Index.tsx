@@ -346,7 +346,7 @@ const Index = () => {
               {showMap && canGenerate && (
                 <div className="space-y-3 mt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <div ref={mapRef} className="border-2 border-border/40 rounded-2xl p-8 bg-card shadow-lg">
-                    <MermaidChart keyword={activeKeyword} thoughts={activeThoughts} />
+                    <CodeMindMap keyword={activeKeyword} thoughts={activeThoughts} />
                   </div>
                   <Button onClick={savePng} variant="outline" className="w-full gap-2 h-11 rounded-xl">
                     <Download className="h-4 w-4" />
