@@ -188,6 +188,18 @@ const Index = () => {
     }
   };
 
+  const copyPng = async () => {
+    if (!mapRef.current) return;
+    try {
+      const dataUrl = await toPng(mapRef.current, { backgroundColor: "#ffffff" });
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+    } catch {
+      console.error("복사 실패");
+    }
+  };
+
   const activeKeyword = tab === "manual" ? keyword : randomKeyword;
   const activeThoughts = tab === "manual" ? thoughts : randomThoughts;
   const canGenerate = activeKeyword.trim() && activeThoughts.length > 0;
