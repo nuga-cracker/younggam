@@ -701,9 +701,14 @@ const Index = () => {
                 }}
               />
             </TabsContent>
+
+            <TabsContent value="stats" className="mt-6">
+              <StatsDashboard sessions={sessions} />
+            </TabsContent>
           </Tabs>
         </div>
       </div>
+      <OnboardingGuide />
     </>
   );
 };
