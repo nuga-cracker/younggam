@@ -161,11 +161,29 @@ const AppSidebar = ({ activeSessionId, onSelectSession, onNewSession, sessions, 
         )}
       </SidebarContent>
 
-      <SidebarFooter className="p-3">
+      <SidebarFooter className="p-3 space-y-2">
         <Button onClick={onNewSession} variant="outline" size="sm" className="w-full gap-1.5 rounded-lg text-xs">
           <Plus className="h-3.5 w-3.5" />
           새 세션
         </Button>
+        {sessions.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="w-full gap-1.5 rounded-lg text-xs text-muted-foreground">
+                <Download className="h-3.5 w-3.5" />
+                데이터 내보내기
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" className="w-40">
+              <DropdownMenuItem onClick={exportJSON} className="text-xs cursor-pointer">
+                JSON으로 내보내기
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportCSV} className="text-xs cursor-pointer">
+                CSV로 내보내기
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </SidebarFooter>
     </Sidebar>
   );
