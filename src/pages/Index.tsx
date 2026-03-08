@@ -79,7 +79,7 @@ const Index = () => {
   const [newThought, setNewThought] = useState("");
   const [showMap, setShowMap] = useState(false);
   const [mapModalOpen, setMapModalOpen] = useState(false);
-  const [vizView, setVizView] = useState<"mindmap" | "affinity" | "swot" | "matrix" | "wordcloud">("mindmap");
+  const [vizView, setVizView] = useState<"mindmap" | "affinity" | "wordcloud">("mindmap");
   const [keywordLocked, setKeywordLocked] = useState(false);
   const [tab, setTab] = useState("manual");
   const [mode, setMode] = useState("mindmap");
