@@ -160,13 +160,19 @@ const Index = () => {
     }
   }, [activeSessionId, keyword, thoughts, randomKeyword, randomThoughts, tab, mode, chainData, chainCurrentQ]);
 
-  // Auto-save on keyword/thoughts change (debounced via effect)
+  // Auto-save on keyword/thoughts/chain change (debounced)
   useEffect(() => {
-    const activeKeyword = tab === "manual" ? keyword : randomKeyword;
-    if (!activeKeyword.trim()) return;
-    const timer = setTimeout(saveCurrentSession, 800);
-    return () => clearTimeout(timer);
-  }, [keyword, thoughts, randomKeyword, randomThoughts, saveCurrentSession]);
+    if (mode === "chain") {
+      if (chainData.length === 0) return;
+      const timer = setTimeout(saveCurrentSession, 800);
+      return () => clearTimeout(timer);
+    } else {
+      const activeKeyword = tab === "manual" ? keyword : randomKeyword;
+      if (!activeKeyword.trim()) return;
+      const timer = setTimeout(saveCurrentSession, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [keyword, thoughts, randomKeyword, randomThoughts, chainData, chainCurrentQ, saveCurrentSession, mode, tab]);
 
   const loadSession = (session: SavedSession) => {
     setActiveSessionId(session.id);
