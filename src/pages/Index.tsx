@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Trash2, Sparkles, Download, Shuffle, Pencil, Brain, MessageCircleQuestion, Menu, Copy, Users, X, Maximize2, LayoutGrid, Target, BarChart3, Cloud, FileJson, FileText, Share2 } from "lucide-react";
+import { Plus, Trash2, Sparkles, Download, Shuffle, Pencil, Brain, MessageCircleQuestion, Menu, Copy, Users, X, Maximize2, LayoutGrid, Target, BarChart3, Cloud, FileJson, FileText, Share2, TrendingUp } from "lucide-react";
 
 import { toPng } from "html-to-image";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import PriorityMatrix from "@/components/PriorityMatrix";
 import WordCloud from "@/components/WordCloud";
 import ChainQuestion from "@/components/ChainQuestion";
 import ThemeToggle from "@/components/ThemeToggle";
+import StatsDashboard from "@/components/StatsDashboard";
+import OnboardingGuide from "@/components/OnboardingGuide";
 import AppSidebar, { SavedSession, loadSessions, saveSessions } from "@/components/AppSidebar";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 
@@ -361,7 +363,7 @@ const Index = () => {
 
         <div className="w-full max-w-lg space-y-6">
           <Tabs value={mode} onValueChange={(v) => { setMode(v); setShowMap(false); }}>
-            <TabsList className="w-full grid grid-cols-2 h-12 rounded-xl bg-muted/80 p-1">
+            <TabsList className="w-full grid grid-cols-3 h-12 rounded-xl bg-muted/80 p-1">
               <TabsTrigger value="mindmap" className="rounded-lg text-sm font-bold gap-2 h-full data-[state=active]:shadow-md">
                 <Brain className="h-4 w-4" />
                 마인드맵
@@ -369,6 +371,10 @@ const Index = () => {
               <TabsTrigger value="chain" className="rounded-lg text-sm font-bold gap-2 h-full data-[state=active]:shadow-md">
                 <MessageCircleQuestion className="h-4 w-4" />
                 꼬리질문
+              </TabsTrigger>
+              <TabsTrigger value="stats" className="rounded-lg text-sm font-bold gap-2 h-full data-[state=active]:shadow-md">
+                <TrendingUp className="h-4 w-4" />
+                통계
               </TabsTrigger>
             </TabsList>
 
@@ -695,9 +701,14 @@ const Index = () => {
                 }}
               />
             </TabsContent>
+
+            <TabsContent value="stats" className="mt-6">
+              <StatsDashboard sessions={sessions} />
+            </TabsContent>
           </Tabs>
         </div>
       </div>
+      <OnboardingGuide />
     </>
   );
 };
