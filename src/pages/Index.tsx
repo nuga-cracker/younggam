@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Trash2, Sparkles, Download, Shuffle } from "lucide-react";
+import { Plus, Trash2, Sparkles, Download, Shuffle, Pencil } from "lucide-react";
 import { toPng } from "html-to-image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,6 +70,7 @@ const Index = () => {
   const [thoughts, setThoughts] = useState<string[]>(load().thoughts);
   const [newThought, setNewThought] = useState("");
   const [showMap, setShowMap] = useState(false);
+  const [keywordLocked, setKeywordLocked] = useState(!!load().keyword);
   const [tab, setTab] = useState("manual");
   const [randomKeyword, setRandomKeyword] = useState("");
   const [randomThoughts, setRandomThoughts] = useState<string[]>([]);
@@ -157,13 +158,24 @@ const Index = () => {
 
           {/* 수동 주제 탭 */}
           <TabsContent value="manual" className="space-y-6 mt-6">
-            <Input
-              placeholder="오늘의 영감 키워드 (20자 이내)"
-              value={keyword}
-              maxLength={MAX_LENGTH}
-              onChange={(e) => { setKeyword(e.target.value); setShowMap(false); }}
-              className="text-center text-lg h-14 rounded-xl border-2 border-primary/20 focus-visible:ring-primary/30 focus-visible:border-primary/50 bg-card shadow-sm transition-all"
-            />
+            {keywordLocked ? (
+              <div className="flex items-center justify-between bg-card border-2 border-primary/20 rounded-xl px-5 h-14 shadow-sm">
+                <span className="text-lg font-bold text-foreground flex-1 text-center">{keyword}</span>
+                <button onClick={() => setKeywordLocked(false)} className="text-muted-foreground hover:text-primary transition-colors ml-2">
+                  <Pencil className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <Input
+                placeholder="오늘의 영감 키워드 (20자 이내)"
+                value={keyword}
+                maxLength={MAX_LENGTH}
+                autoFocus
+                onChange={(e) => { setKeyword(e.target.value); setShowMap(false); }}
+                onKeyDown={(e) => { if (e.key === "Enter" && keyword.trim()) { setKeywordLocked(true); } }}
+                className="text-center text-lg h-14 rounded-xl border-2 border-primary/20 focus-visible:ring-primary/30 focus-visible:border-primary/50 bg-card shadow-sm transition-all"
+              />
+            )}
 
             <div className="space-y-1.5">
               <div className="flex gap-2">
