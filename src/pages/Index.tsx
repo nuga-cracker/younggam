@@ -216,7 +216,9 @@ const Index = () => {
                     <p className="text-2xl font-bold text-foreground">{randomKeyword}</p>
                   </div>
 
-                  <ul className="space-y-2">
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground mb-2 tracking-wide">연관 키워드</p>
+                    <ul className="space-y-2">
                     {randomThoughts.map((t, i) => (
                       <li key={i} className="flex items-center gap-3 bg-card border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground shadow-sm">
                         <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: DOTS[i % 10] }} />
