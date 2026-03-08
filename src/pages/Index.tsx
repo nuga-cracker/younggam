@@ -670,8 +670,6 @@ const Index = () => {
                       <DialogTitle className="text-lg font-bold">
                         {vizView === "mindmap" && "마인드맵"}
                         {vizView === "affinity" && "어피니티 다이어그램"}
-                        {vizView === "swot" && "SWOT 분석"}
-                        {vizView === "matrix" && "우선순위 매트릭스"}
                         {vizView === "wordcloud" && "워드클라우드"}
                       </DialogTitle>
                       <div className="flex-1 overflow-auto border-2 border-border/40 rounded-2xl p-8 bg-card">
