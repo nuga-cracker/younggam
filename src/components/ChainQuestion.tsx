@@ -37,6 +37,15 @@ const ChainQuestion = () => {
     setStarted(true);
   };
 
+  const rerollQuestion = () => {
+    let q = currentQ;
+    while (q === currentQ) {
+      q = STARTER_QUESTIONS[Math.floor(Math.random() * STARTER_QUESTIONS.length)];
+    }
+    setCurrentQ(q);
+    setCurrentAnswer("");
+  };
+
   const submitAnswer = () => {
     if (!currentAnswer.trim()) return;
     const newPair: QAPair = { question: currentQ, answer: currentAnswer.trim() };
