@@ -70,6 +70,7 @@ const Index = () => {
   const [thoughts, setThoughts] = useState<string[]>(load().thoughts);
   const [newThought, setNewThought] = useState("");
   const [showMap, setShowMap] = useState(false);
+  const [keywordLocked, setKeywordLocked] = useState(!!load().keyword);
   const [tab, setTab] = useState("manual");
   const [randomKeyword, setRandomKeyword] = useState("");
   const [randomThoughts, setRandomThoughts] = useState<string[]>([]);
