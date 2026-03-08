@@ -21,25 +21,25 @@ const CodeMindMap = ({ keyword, thoughts }: CodeMindMapProps) => {
     const count = thoughts.length;
     if (count === 0) return { nodes: [], lines: [], width: 400, height: 200 };
 
-    const rootX = 160;
-    const rootY = count <= 4 ? 120 : (count * 52) / 2;
-    const rootW = Math.min(keyword.length * 14 + 40, 200);
-    const rootH = 44;
+    const rootX = 170;
+    const rootY = count <= 4 ? 140 : (count * 68) / 2;
+    const rootW = Math.min(keyword.length * 16 + 48, 240);
+    const rootH = 52;
 
-    const childX = 380;
-    const spacing = 56;
+    const childX = 420;
+    const spacing = 72;
     const totalH = (count - 1) * spacing;
     const startY = rootY - totalH / 2;
 
     const nodes = thoughts.map((t, i) => {
-      const w = Math.min(t.length * 13 + 32, 220);
+      const w = Math.min(t.length * 14 + 48, 260);
       const y = startY + i * spacing;
       return {
         label: t,
         x: childX,
         y,
         w,
-        h: 38,
+        h: 46,
         color: NODE_COLORS[i % NODE_COLORS.length],
       };
     });
@@ -51,15 +51,15 @@ const CodeMindMap = ({ keyword, thoughts }: CodeMindMapProps) => {
       y2: n.y,
     }));
 
-    const maxRight = Math.max(...nodes.map((n) => n.x + n.w / 2)) + 40;
-    const maxBottom = Math.max(...nodes.map((n) => n.y + n.h / 2), rootY + rootH / 2) + 40;
-    const minTop = Math.min(...nodes.map((n) => n.y - n.h / 2), rootY - rootH / 2) - 40;
+    const maxRight = Math.max(...nodes.map((n) => n.x + n.w / 2)) + 50;
+    const maxBottom = Math.max(...nodes.map((n) => n.y + n.h / 2), rootY + rootH / 2) + 50;
+    const minTop = Math.min(...nodes.map((n) => n.y - n.h / 2), rootY - rootH / 2) - 50;
 
     return {
       rootX, rootY, rootW, rootH,
       nodes,
       lines,
-      width: Math.max(maxRight, 560),
+      width: Math.max(maxRight, 600),
       height: maxBottom - minTop,
       offsetY: -minTop,
     };
@@ -111,32 +111,19 @@ const CodeMindMap = ({ keyword, thoughts }: CodeMindMapProps) => {
               y={rootY - rootH / 2}
               width={rootW}
               height={rootH}
-              rx={10}
-              ry={10}
+              rx={12}
+              ry={12}
               fill="hsl(220, 55%, 50%)"
               stroke="hsl(220, 55%, 40%)"
               strokeWidth="2"
             />
-            {/* Code bracket icon */}
             <text
-              x={rootX - rootW / 2 + 16}
-              y={rootY + 1}
-              textAnchor="middle"
-              dominantBaseline="central"
-              fill="hsl(220, 80%, 90%)"
-              fontSize="16"
-              fontFamily="monospace"
-              fontWeight="700"
-            >
-              {"{ }"}
-            </text>
-            <text
-              x={rootX + 10}
+              x={rootX}
               y={rootY + 1}
               textAnchor="middle"
               dominantBaseline="central"
               fill="white"
-              fontSize="15"
+              fontSize="16"
               fontWeight="800"
               fontFamily="'Pretendard', system-ui, sans-serif"
             >
@@ -152,41 +139,19 @@ const CodeMindMap = ({ keyword, thoughts }: CodeMindMapProps) => {
                 y={n.y - n.h / 2}
                 width={n.w}
                 height={n.h}
-                rx={8}
-                ry={8}
+                rx={10}
+                ry={10}
                 fill={n.color.bg}
                 stroke={n.color.border}
                 strokeWidth="1.5"
               />
-              {/* Line number style indicator */}
               <text
-                x={n.x - n.w / 2 + 14}
-                y={n.y + 1}
-                textAnchor="middle"
-                dominantBaseline="central"
-                fill={n.color.border}
-                fontSize="11"
-                fontFamily="monospace"
-                fontWeight="600"
-              >
-                {String(i + 1).padStart(2, "0")}
-              </text>
-              <line
-                x1={n.x - n.w / 2 + 26}
-                y1={n.y - n.h / 2 + 6}
-                x2={n.x - n.w / 2 + 26}
-                y2={n.y + n.h / 2 - 6}
-                stroke={n.color.border}
-                strokeWidth="1"
-                opacity="0.5"
-              />
-              <text
-                x={n.x + 6}
+                x={n.x}
                 y={n.y + 1}
                 textAnchor="middle"
                 dominantBaseline="central"
                 fill={n.color.text}
-                fontSize="13"
+                fontSize="14"
                 fontWeight="700"
                 fontFamily="'Pretendard', system-ui, sans-serif"
               >
