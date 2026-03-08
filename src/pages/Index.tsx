@@ -356,6 +356,7 @@ const Index = () => {
                     </div>
                   )}
 
+                  <div className="space-y-1.5">
                     <div className="flex gap-2">
                       <Input
                         placeholder="짧은 생각을 입력하세요 (20자 이내)"
