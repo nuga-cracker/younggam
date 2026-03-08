@@ -4,6 +4,7 @@ import { toPng } from "html-to-image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import CodeMindMap from "@/components/CodeMindMap";
 import ChainQuestion from "@/components/ChainQuestion";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -68,7 +69,7 @@ const Index = () => {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
   const [keyword, setKeyword] = useState("");
-  const [thoughts, setThoughts] = useState<string[]>([]);
+  const [thoughts, setThoughts] = useState<{ text: string; member?: string }[]>([]);
   const [newThought, setNewThought] = useState("");
   const [showMap, setShowMap] = useState(false);
   const [keywordLocked, setKeywordLocked] = useState(false);
@@ -89,14 +90,14 @@ const Index = () => {
   // Auto-save current work as a session
   const saveCurrentSession = useCallback(() => {
     const activeKeyword = tab === "manual" ? keyword : randomKeyword;
-    const activeThoughts = tab === "manual" ? thoughts : randomThoughts;
+    const savedThoughts = tab === "manual" ? thoughts.map((t) => t.text) : randomThoughts;
     if (!activeKeyword.trim()) return;
 
     if (activeSessionId) {
       setSessions((prev) =>
         prev.map((s) =>
           s.id === activeSessionId
-            ? { ...s, keyword: activeKeyword, thoughts: activeThoughts, title: activeKeyword, category: findCategory(activeKeyword) }
+            ? { ...s, keyword: activeKeyword, thoughts: savedThoughts, title: activeKeyword, category: findCategory(activeKeyword) }
             : s
         )
       );
@@ -107,7 +108,7 @@ const Index = () => {
         type: mode === "mindmap" ? "mindmap" : "chain",
         category: findCategory(activeKeyword),
         keyword: activeKeyword,
-        thoughts: activeThoughts,
+        thoughts: savedThoughts,
         createdAt: Date.now(),
       };
       setSessions((prev) => [newSession, ...prev]);
@@ -127,7 +128,7 @@ const Index = () => {
     setActiveSessionId(session.id);
     setMode(session.type === "chain" ? "chain" : "mindmap");
     setKeyword(session.keyword);
-    setThoughts(session.thoughts);
+    setThoughts(session.thoughts.map((t) => typeof t === "string" ? { text: t } : t));
     setKeywordLocked(!!session.keyword);
     setShowMap(false);
     if (session.type === "mindmap") {
@@ -168,7 +169,7 @@ const Index = () => {
   const addThought = () => {
     const trimmed = newThought.trim();
     if (!trimmed) return;
-    setThoughts((prev) => [...prev, trimmed]);
+    setThoughts((prev) => [...prev, { text: trimmed }]);
     setNewThought("");
     setShowMap(false);
   };
@@ -176,6 +177,12 @@ const Index = () => {
   const removeThought = (index: number) => {
     setThoughts((prev) => prev.filter((_, i) => i !== index));
     setShowMap(false);
+  };
+
+  const assignMember = (index: number, member: string | undefined) => {
+    setThoughts((prev) =>
+      prev.map((t, i) => (i === index ? { ...t, member } : t))
+    );
   };
 
   const rollRandomTopic = () => {
@@ -218,7 +225,7 @@ const Index = () => {
   };
 
   const activeKeyword = tab === "manual" ? keyword : randomKeyword;
-  const activeThoughts = tab === "manual" ? thoughts : randomThoughts;
+  const activeThoughts = tab === "manual" ? thoughts.map((t) => t.text) : randomThoughts;
   const canGenerate = activeKeyword.trim() && activeThoughts.length > 0;
   const overLimit = newThought.length > MAX_LENGTH;
 
@@ -370,14 +377,47 @@ const Index = () => {
                   {thoughts.length > 0 && (
                     <ul className="space-y-2">
                       {thoughts.map((t, i) => (
-                        <li key={i} className="group flex items-center justify-between bg-card border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground shadow-sm hover:shadow-md transition-shadow">
-                          <div className="flex items-center gap-3">
-                            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: DOTS[i % 10] }} />
-                            <span>{t}</span>
+                        <li key={i} className="bg-card border border-border/50 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                          <div className="flex items-center justify-between px-4 py-3 text-sm text-foreground">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: DOTS[i % 10] }} />
+                              <span className="truncate">{t.text}</span>
+                              {t.member && (
+                                <span className="shrink-0 text-xs bg-primary/10 text-primary font-medium px-2 py-0.5 rounded-full">
+                                  {t.member}
+                                </span>
+                              )}
+                            </div>
+                            <button onClick={() => removeThought(i)} className="text-muted-foreground/40 hover:text-destructive transition-colors ml-3 shrink-0">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
                           </div>
-                          <button onClick={() => removeThought(i)} className="text-muted-foreground/40 group-hover:text-destructive transition-colors ml-3">
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                          {members.length > 0 && (
+                            <Collapsible>
+                              <CollapsibleTrigger className="w-full text-left px-4 pb-1 pt-0">
+                                <span className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                                  {t.member ? "멤버 변경 ▾" : "멤버 지정 ▾"}
+                                </span>
+                              </CollapsibleTrigger>
+                              <CollapsibleContent>
+                                <div className="flex flex-wrap gap-1.5 px-4 pb-3 pt-1">
+                                  {members.map((m) => (
+                                    <button
+                                      key={m}
+                                      onClick={() => assignMember(i, t.member === m ? undefined : m)}
+                                      className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                                        t.member === m
+                                          ? "bg-primary text-primary-foreground border-primary"
+                                          : "bg-muted/50 text-muted-foreground border-border/50 hover:border-primary/50 hover:text-foreground"
+                                      }`}
+                                    >
+                                      {m}
+                                    </button>
+                                  ))}
+                                </div>
+                              </CollapsibleContent>
+                            </Collapsible>
+                          )}
                         </li>
                       ))}
                     </ul>
