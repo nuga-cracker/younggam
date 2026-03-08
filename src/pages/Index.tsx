@@ -358,19 +358,6 @@ const Index = () => {
                   )}
 
                   <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="짧은 생각을 입력하세요 (20자 이내)"
-                        value={newThought}
-                        maxLength={MAX_LENGTH}
-                        onChange={(e) => setNewThought(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && !overLimit && addThought()}
-                        className="flex-1 h-11 rounded-xl border-2 border-border/60 focus-visible:ring-primary/30 bg-card shadow-sm"
-                      />
-                      <Button onClick={addThought} size="icon" disabled={overLimit} className="shrink-0 h-11 w-11 rounded-xl shadow-sm">
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
                     {members.length > 0 && (
                       <Collapsible>
                         <CollapsibleTrigger className="w-full text-left">
@@ -407,6 +394,19 @@ const Index = () => {
                         </CollapsibleContent>
                       </Collapsible>
                     )}
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="짧은 생각을 입력하세요 (20자 이내)"
+                        value={newThought}
+                        maxLength={MAX_LENGTH}
+                        onChange={(e) => setNewThought(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && !overLimit && addThought()}
+                        className="flex-1 h-11 rounded-xl border-2 border-border/60 focus-visible:ring-primary/30 bg-card shadow-sm"
+                      />
+                      <Button onClick={addThought} size="icon" disabled={overLimit} className="shrink-0 h-11 w-11 rounded-xl shadow-sm">
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <p className={`text-xs text-right pr-1 ${overLimit ? "text-destructive" : "text-muted-foreground"}`}>
                       {newThought.length}/{MAX_LENGTH}
                     </p>
