@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Trash2, Sparkles, Download, Shuffle } from "lucide-react";
+import { Plus, Trash2, Sparkles, Download, Shuffle, Pencil } from "lucide-react";
 import { toPng } from "html-to-image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
