@@ -511,16 +511,45 @@ const Index = () => {
 
               {showMap && canGenerate && (
                 <div className="space-y-3 mt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  {/* View switcher */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { key: "mindmap", label: "마인드맵", icon: Brain },
+                      { key: "affinity", label: "어피니티", icon: LayoutGrid },
+                      { key: "swot", label: "SWOT", icon: Target },
+                      { key: "matrix", label: "매트릭스", icon: BarChart3 },
+                      { key: "wordcloud", label: "워드클라우드", icon: Cloud },
+                    ].map(({ key, label, icon: Icon }) => (
+                      <button
+                        key={key}
+                        onClick={() => setVizView(key as any)}
+                        className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors font-semibold ${
+                          vizView === key
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-muted/50 text-muted-foreground border-border/50 hover:border-primary/50 hover:text-foreground"
+                        }`}
+                        style={{ fontFamily: "'Pretendard', system-ui, sans-serif" }}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+
                   <div ref={mapRef} className="border-2 border-border/40 rounded-2xl p-8 bg-card shadow-lg relative">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="absolute top-2 right-2 h-8 w-8 rounded-lg"
+                      className="absolute top-2 right-2 h-8 w-8 rounded-lg z-10"
                       onClick={() => setMapModalOpen(true)}
                     >
                       <Maximize2 className="h-4 w-4" />
                     </Button>
-                    <CodeMindMap keyword={activeKeyword} thoughts={activeThoughts} />
+                    {vizView === "mindmap" && <CodeMindMap keyword={activeKeyword} thoughts={activeThoughts} />}
+                    {vizView === "affinity" && <AffinityDiagram keyword={activeKeyword} thoughts={activeThoughts} />}
+                    {vizView === "swot" && <SwotAnalysis keyword={activeKeyword} thoughts={activeThoughts} />}
+                    {vizView === "matrix" && <PriorityMatrix keyword={activeKeyword} thoughts={activeThoughts} />}
+                    {vizView === "wordcloud" && <WordCloud keyword={activeKeyword} thoughts={activeThoughts} />}
                   </div>
                   <div className="flex gap-2">
                     <Button onClick={savePng} variant="outline" className="flex-1 gap-2 h-11 rounded-xl">
@@ -535,9 +564,19 @@ const Index = () => {
 
                   <Dialog open={mapModalOpen} onOpenChange={setMapModalOpen}>
                     <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] h-[90vh] p-6 flex flex-col">
-                      <DialogTitle className="text-lg font-bold">마인드맵</DialogTitle>
+                      <DialogTitle className="text-lg font-bold">
+                        {vizView === "mindmap" && "마인드맵"}
+                        {vizView === "affinity" && "어피니티 다이어그램"}
+                        {vizView === "swot" && "SWOT 분석"}
+                        {vizView === "matrix" && "우선순위 매트릭스"}
+                        {vizView === "wordcloud" && "워드클라우드"}
+                      </DialogTitle>
                       <div className="flex-1 overflow-auto border-2 border-border/40 rounded-2xl p-8 bg-card">
-                        <CodeMindMap keyword={activeKeyword} thoughts={activeThoughts} />
+                        {vizView === "mindmap" && <CodeMindMap keyword={activeKeyword} thoughts={activeThoughts} />}
+                        {vizView === "affinity" && <AffinityDiagram keyword={activeKeyword} thoughts={activeThoughts} />}
+                        {vizView === "swot" && <SwotAnalysis keyword={activeKeyword} thoughts={activeThoughts} />}
+                        {vizView === "matrix" && <PriorityMatrix keyword={activeKeyword} thoughts={activeThoughts} />}
+                        {vizView === "wordcloud" && <WordCloud keyword={activeKeyword} thoughts={activeThoughts} />}
                       </div>
                     </DialogContent>
                   </Dialog>
