@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Brain, MessageCircleQuestion, TrendingUp, Clock, Award, Layers } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { SavedSession } from "@/components/AppSidebar";
 
 interface StatsDashboardProps {
@@ -16,24 +17,53 @@ const StatsDashboard = ({ sessions }: StatsDashboardProps) => {
       : 0;
 
     const maxDepth = chainSessions.reduce((max, s) => Math.max(max, s.chainData?.length || 0), 0);
-
     const totalThoughts = mindmapSessions.reduce((sum, s) => sum + s.thoughts.length, 0);
 
-    // Category frequency
     const catMap = new Map<string, number>();
     sessions.forEach((s) => {
       const cat = s.category || "미분류";
       catMap.set(cat, (catMap.get(cat) || 0) + 1);
     });
-    const topCategories = Array.from(catMap.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
+    const topCategories = Array.from(catMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
-    // Recent activity (last 7 days)
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     const recentCount = sessions.filter((s) => s.createdAt > weekAgo).length;
 
-    return { mindmapSessions: mindmapSessions.length, chainSessions: chainSessions.length, avgDepth, maxDepth, totalThoughts, topCategories, recentCount };
+    // Heatmap: last 16 weeks
+    const dayMs = 24 * 60 * 60 * 1000;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayTs = today.getTime();
+    const todayDay = today.getDay();
+    const totalDays = 16 * 7;
+    const startOffset = totalDays - 1 + todayDay;
+    const startTs = todayTs - startOffset * dayMs;
+
+    const dayCountMap = new Map<string, number>();
+    sessions.forEach((s) => {
+      const d = new Date(s.createdAt);
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      dayCountMap.set(key, (dayCountMap.get(key) || 0) + 1);
+    });
+
+    const heatmapWeeks: { date: Date; count: number }[][] = [];
+    let week: { date: Date; count: number }[] = [];
+    for (let i = 0; i <= startOffset + (6 - todayDay); i++) {
+      const date = new Date(startTs + i * dayMs);
+      const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      const count = dayCountMap.get(key) || 0;
+      const isFuture = date.getTime() > todayTs;
+      week.push({ date, count: isFuture ? -1 : count });
+      if (week.length === 7) {
+        heatmapWeeks.push(week);
+        week = [];
+      }
+    }
+    if (week.length > 0) heatmapWeeks.push(week);
+
+    const maxCount = Math.max(1, ...Array.from(dayCountMap.values()));
+
+    return { mindmapSessions: mindmapSessions.length, chainSessions: chainSessions.length, avgDepth, maxDepth, totalThoughts, topCategories, recentCount, heatmapWeeks, maxCount };
   }, [sessions]);
 
   if (sessions.length === 0) {
@@ -55,6 +85,16 @@ const StatsDashboard = ({ sessions }: StatsDashboardProps) => {
     { label: "최근 7일", value: `${stats.recentCount}개`, icon: Clock, color: "#C3B1E1" },
   ];
 
+  const getHeatColor = (level: number) => {
+    switch (level) {
+      case 1: return "hsl(var(--primary) / 0.25)";
+      case 2: return "hsl(var(--primary) / 0.5)";
+      case 3: return "hsl(var(--primary) / 0.75)";
+      case 4: return "hsl(var(--primary))";
+      default: return "hsl(var(--muted))";
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-card border-2 border-primary/20 rounded-xl p-6 shadow-sm">
@@ -74,6 +114,52 @@ const StatsDashboard = ({ sessions }: StatsDashboardProps) => {
             <p className="text-xs text-muted-foreground">{label}</p>
           </div>
         ))}
+      </div>
+
+      {/* Activity Heatmap */}
+      <div className="bg-card border border-border/50 rounded-xl p-5 shadow-sm">
+        <p className="text-sm font-semibold text-foreground mb-3">🌱 활동 잔디밭</p>
+        <TooltipProvider delayDuration={100}>
+          <div className="overflow-x-auto">
+            <div className="flex gap-[3px]">
+              {stats.heatmapWeeks.map((week, wi) => (
+                <div key={wi} className="flex flex-col gap-[3px]">
+                  {week.map((day, di) => {
+                    if (day.count === -1) {
+                      return <div key={di} className="w-[11px] h-[11px]" />;
+                    }
+                    const level = day.count === 0 ? 0 : Math.min(4, Math.ceil(day.count / stats.maxCount * 4));
+                    const dateStr = `${day.date.getMonth() + 1}/${day.date.getDate()}`;
+                    return (
+                      <Tooltip key={di}>
+                        <TooltipTrigger asChild>
+                          <div
+                            className="w-[11px] h-[11px] rounded-[2px] transition-colors"
+                            style={{ backgroundColor: getHeatColor(level) }}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="text-xs">
+                          {dateStr}: {day.count}개 세션
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        </TooltipProvider>
+        <div className="flex items-center justify-end gap-1 mt-2">
+          <span className="text-[10px] text-muted-foreground mr-1">적음</span>
+          {[0, 1, 2, 3, 4].map((level) => (
+            <div
+              key={level}
+              className="w-[10px] h-[10px] rounded-[2px]"
+              style={{ backgroundColor: getHeatColor(level) }}
+            />
+          ))}
+          <span className="text-[10px] text-muted-foreground ml-1">많음</span>
+        </div>
       </div>
 
       {stats.avgDepth > 0 && (
