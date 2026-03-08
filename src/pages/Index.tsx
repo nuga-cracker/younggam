@@ -77,6 +77,9 @@ const Index = () => {
   const [randomKeyword, setRandomKeyword] = useState("");
   const [randomThoughts, setRandomThoughts] = useState<string[]>([]);
   const mapRef = useRef<HTMLDivElement>(null);
+  const [showMembers, setShowMembers] = useState(false);
+  const [members, setMembers] = useState<string[]>([]);
+  const [newMember, setNewMember] = useState("");
 
   const { toggleSidebar } = useSidebar();
 
