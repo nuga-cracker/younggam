@@ -546,7 +546,7 @@ const Index = () => {
                     >
                       <Maximize2 className="h-4 w-4" />
                     </Button>
-                    {vizView === "mindmap" && <CodeMindMap keyword={activeKeyword} thoughts={activeThoughts} />}
+                    {vizView === "mindmap" && <CodeMindMap keyword={activeKeyword} thoughts={activeThoughts} onEditKeyword={(t) => { if (tab === "manual") { setKeyword(t); } else { setRandomKeyword(t); } }} onEditThought={(i, t) => { if (tab === "manual") { setThoughts((prev) => prev.map((th, idx) => idx === i ? { ...th, text: t } : th)); } else { setRandomThoughts((prev) => prev.map((th, idx) => idx === i ? t : th)); } }} />}
                     {vizView === "affinity" && <AffinityDiagram keyword={activeKeyword} thoughts={activeThoughts} />}
                     {vizView === "swot" && <SwotAnalysis keyword={activeKeyword} thoughts={activeThoughts} />}
                     {vizView === "matrix" && <PriorityMatrix keyword={activeKeyword} thoughts={activeThoughts} />}
