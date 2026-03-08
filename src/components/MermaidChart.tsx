@@ -80,9 +80,9 @@ ${lines.join("\n")}`;
           ".mindmap-node:first-child text"
         );
         if (rootText) {
-          rootText.style.fill = "#1E293B";
-          rootText.style.fontWeight = "700";
-          rootText.style.fontSize = "16px";
+          rootText.style.fill = "#0F172A";
+          rootText.style.fontWeight = "800";
+          rootText.style.fontSize = "18px";
         }
 
         // Color section lines
