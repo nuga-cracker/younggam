@@ -506,6 +506,7 @@ const Index = () => {
                 variant="default"
                 className="w-full gap-2 h-12 rounded-xl text-base font-semibold shadow-md hover:shadow-lg transition-shadow"
               >
+                <Sparkles className="h-4 w-4" />
                 시각화 생성
               </Button>
 
