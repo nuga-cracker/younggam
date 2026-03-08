@@ -22,6 +22,13 @@ const RANDOM_TOPICS: Record<string, string[]> = {
 
 const ALL_TOPICS = Object.values(RANDOM_TOPICS).flat();
 
+const findCategory = (kw: string): string => {
+  for (const [cat, topics] of Object.entries(RANDOM_TOPICS)) {
+    if (topics.includes(kw)) return cat;
+  }
+  return "미분류";
+};
+
 const RELATED_WORDS: Record<string, string[]> = {
   "오늘의 기분": ["설렘", "평온", "기대감", "피곤함", "활력"],
   "감사한 것": ["가족", "건강", "친구", "자연", "음식"],
