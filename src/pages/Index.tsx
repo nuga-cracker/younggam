@@ -205,6 +205,8 @@ const Index = () => {
     setShowMembers(false);
     setMembers([]);
     setNewMember("");
+    setChainData([]);
+    setChainCurrentQ("");
   };
 
   const addMember = () => {
