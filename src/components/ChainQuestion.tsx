@@ -140,7 +140,10 @@ const ChainQuestion = () => {
                 <Plus className="h-4 w-4" />
                 답변하고 다음 질문으로
               </Button>
-              <Button onClick={reset} variant="outline" size="icon" className="h-11 w-11 rounded-xl shadow-sm">
+              <Button onClick={rerollQuestion} variant="outline" size="icon" className="h-11 w-11 rounded-xl shadow-sm" title="질문 다시 선택">
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+              <Button onClick={reset} variant="outline" size="icon" className="h-11 w-11 rounded-xl shadow-sm" title="처음부터 다시">
                 <RotateCcw className="h-4 w-4" />
               </Button>
             </div>
