@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Brain, MessageCircleQuestion, Search, Plus, Trash2, FileText } from "lucide-react";
+import { Brain, MessageCircleQuestion, Search, Plus, Trash2, FileText, Tag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
