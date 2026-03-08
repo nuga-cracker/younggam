@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Trash2, Sparkles, Download, Shuffle, Pencil, Brain, MessageCircleQuestion, Menu, Copy, Users, X } from "lucide-react";
+import { Plus, Trash2, Sparkles, Download, Shuffle, Pencil, Brain, MessageCircleQuestion, Menu, Copy, Users, X, Maximize2 } from "lucide-react";
+
 import { toPng } from "html-to-image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import CodeMindMap from "@/components/CodeMindMap";
 import ChainQuestion from "@/components/ChainQuestion";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -72,6 +74,7 @@ const Index = () => {
   const [thoughts, setThoughts] = useState<{ text: string; member?: string }[]>([]);
   const [newThought, setNewThought] = useState("");
   const [showMap, setShowMap] = useState(false);
+  const [mapModalOpen, setMapModalOpen] = useState(false);
   const [keywordLocked, setKeywordLocked] = useState(false);
   const [tab, setTab] = useState("manual");
   const [mode, setMode] = useState("mindmap");
@@ -504,7 +507,15 @@ const Index = () => {
 
               {showMap && canGenerate && (
                 <div className="space-y-3 mt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div ref={mapRef} className="border-2 border-border/40 rounded-2xl p-8 bg-card shadow-lg">
+                  <div ref={mapRef} className="border-2 border-border/40 rounded-2xl p-8 bg-card shadow-lg relative">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8 rounded-lg"
+                      onClick={() => setMapModalOpen(true)}
+                    >
+                      <Maximize2 className="h-4 w-4" />
+                    </Button>
                     <CodeMindMap keyword={activeKeyword} thoughts={activeThoughts} />
                   </div>
                   <div className="flex gap-2">
@@ -517,6 +528,15 @@ const Index = () => {
                       복사
                     </Button>
                   </div>
+
+                  <Dialog open={mapModalOpen} onOpenChange={setMapModalOpen}>
+                    <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] h-[90vh] p-6 flex flex-col">
+                      <DialogTitle className="text-lg font-bold">마인드맵</DialogTitle>
+                      <div className="flex-1 overflow-auto border-2 border-border/40 rounded-2xl p-8 bg-card">
+                        <CodeMindMap keyword={activeKeyword} thoughts={activeThoughts} />
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               )}
             </TabsContent>
