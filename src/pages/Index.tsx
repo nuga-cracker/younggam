@@ -96,7 +96,35 @@ const Index = () => {
   // Persist sessions
   useEffect(() => { saveSessions(sessions); }, [sessions]);
 
-  // Auto-save current work as a session
+  // Load shared session from URL hash
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash.startsWith("#share=")) return;
+    try {
+      const encoded = hash.slice(7);
+      const json = decodeURIComponent(escape(atob(encoded)));
+      const data = JSON.parse(json);
+      if (data.k) {
+        setKeyword(data.k);
+        setKeywordLocked(true);
+        if (Array.isArray(data.t)) {
+          setThoughts(data.t.map((item: string) => {
+            if (item.includes("|")) {
+              const [member, ...rest] = item.split("|");
+              return { text: rest.join("|"), member };
+            }
+            return { text: item };
+          }));
+        }
+        setTab("manual");
+        setMode("mindmap");
+        setShowMap(true);
+        window.location.hash = "";
+      }
+    } catch { /* ignore invalid hash */ }
+  }, []);
+
+
   const saveCurrentSession = useCallback(() => {
     const activeKeyword = tab === "manual" ? keyword : randomKeyword;
     const savedThoughts = tab === "manual" ? thoughts.map((t) => t.text) : randomThoughts;
