@@ -138,6 +138,13 @@ const ChainQuestion = () => {
     setStarted(true);
   };
 
+  const skipToNewQuestion = () => {
+    const q = STARTER_QUESTIONS[Math.floor(Math.random() * STARTER_QUESTIONS.length)];
+    setCurrentQ(q);
+    setCurrentAnswer("");
+    setNextQuestion("");
+  };
+
   const rerollQuestion = () => {
     let q = currentQ;
     while (q === currentQ) {
