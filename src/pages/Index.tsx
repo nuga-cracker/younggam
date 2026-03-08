@@ -10,7 +10,6 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import CodeMindMap from "@/components/CodeMindMap";
 import AffinityDiagram from "@/components/AffinityDiagram";
 import WordCloud from "@/components/WordCloud";
-import WordCloud from "@/components/WordCloud";
 import ChainQuestion from "@/components/ChainQuestion";
 import ThemeToggle from "@/components/ThemeToggle";
 import StatsDashboard from "@/components/StatsDashboard";
