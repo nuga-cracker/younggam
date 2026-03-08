@@ -79,7 +79,7 @@ const Index = () => {
       setSessions((prev) =>
         prev.map((s) =>
           s.id === activeSessionId
-            ? { ...s, keyword: activeKeyword, thoughts: activeThoughts, title: activeKeyword }
+            ? { ...s, keyword: activeKeyword, thoughts: activeThoughts, title: activeKeyword, category: findCategory(activeKeyword) }
             : s
         )
       );
