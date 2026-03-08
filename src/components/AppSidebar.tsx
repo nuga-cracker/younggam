@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { Brain, MessageCircleQuestion, Search, Plus, Trash2, FileText, Tag } from "lucide-react";
+import { Brain, MessageCircleQuestion, Search, Plus, Trash2, FileText, Tag, Download } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,6 +51,32 @@ interface AppSidebarProps {
 
 const AppSidebar = ({ activeSessionId, onSelectSession, onNewSession, sessions, onDeleteSession }: AppSidebarProps) => {
   const [search, setSearch] = useState("");
+
+  const downloadFile = (content: string, filename: string, type: string) => {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportJSON = () => {
+    const data = sessions.map(({ id, title, type, category, keyword, thoughts, chainData, createdAt }) => ({
+      id, title, type, category: category || "미분류", keyword, thoughts, chainData, createdAt: new Date(createdAt).toISOString(),
+    }));
+    downloadFile(JSON.stringify(data, null, 2), `inspiration-lab-${new Date().toISOString().slice(0, 10)}.json`, "application/json");
+  };
+
+  const exportCSV = () => {
+    const header = "제목,유형,분야,키워드,생각들,생성일";
+    const rows = sessions.map((s) =>
+      [s.title, s.type === "mindmap" ? "마인드맵" : "꼬리질문", s.category || "미분류", s.keyword, `"${s.thoughts.join(", ")}"`, new Date(s.createdAt).toISOString().slice(0, 10)].join(",")
+    );
+    const bom = "\uFEFF";
+    downloadFile(bom + [header, ...rows].join("\n"), `inspiration-lab-${new Date().toISOString().slice(0, 10)}.csv`, "text/csv;charset=utf-8");
+  };
 
   const filtered = useMemo(() => {
     if (!search.trim()) return sessions;
@@ -134,11 +161,29 @@ const AppSidebar = ({ activeSessionId, onSelectSession, onNewSession, sessions, 
         )}
       </SidebarContent>
 
-      <SidebarFooter className="p-3">
+      <SidebarFooter className="p-3 space-y-2">
         <Button onClick={onNewSession} variant="outline" size="sm" className="w-full gap-1.5 rounded-lg text-xs">
           <Plus className="h-3.5 w-3.5" />
           새 세션
         </Button>
+        {sessions.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="w-full gap-1.5 rounded-lg text-xs text-muted-foreground">
+                <Download className="h-3.5 w-3.5" />
+                데이터 내보내기
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" className="w-40">
+              <DropdownMenuItem onClick={exportJSON} className="text-xs cursor-pointer">
+                JSON으로 내보내기
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportCSV} className="text-xs cursor-pointer">
+                CSV로 내보내기
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </SidebarFooter>
     </Sidebar>
   );
