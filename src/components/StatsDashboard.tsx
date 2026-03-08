@@ -95,6 +95,65 @@ const StatsDashboard = ({ sessions }: StatsDashboardProps) => {
         <p className="text-xs text-muted-foreground">지금까지의 사고 여정을 한눈에 확인하세요</p>
       </div>
 
+      {/* Activity Heatmap */}
+      <div className="bg-card border border-border/50 rounded-xl p-5 shadow-sm">
+        <p className="text-sm font-semibold text-foreground mb-3">🌱 활동 잔디밭</p>
+        <TooltipProvider delayDuration={100}>
+          <div className="overflow-x-auto">
+            <div className="flex gap-[3px]">
+              {stats.heatmapWeeks.map((week, wi) => (
+                <div key={wi} className="flex flex-col gap-[3px]">
+                  {week.map((day, di) => {
+                    if (day.count === -1) {
+                      return <div key={di} className="w-[11px] h-[11px]" />;
+                    }
+                    const level = day.count === 0 ? 0 : Math.min(4, Math.ceil(day.count / stats.maxCount * 4));
+                    const dateStr = `${day.date.getMonth() + 1}/${day.date.getDate()}`;
+                    return (
+                      <Tooltip key={di}>
+                        <TooltipTrigger asChild>
+                          <div
+                            className="w-[11px] h-[11px] rounded-[2px] transition-colors"
+                            style={{
+                              backgroundColor:
+                                level === 0 ? "hsl(var(--muted))" :
+                                level === 1 ? "hsl(var(--primary) / 0.25)" :
+                                level === 2 ? "hsl(var(--primary) / 0.5)" :
+                                level === 3 ? "hsl(var(--primary) / 0.75)" :
+                                "hsl(var(--primary))",
+                            }}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="text-xs">
+                          {dateStr}: {day.count}개 세션
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        </TooltipProvider>
+        <div className="flex items-center justify-end gap-1 mt-2">
+          <span className="text-[10px] text-muted-foreground mr-1">적음</span>
+          {[0, 1, 2, 3, 4].map((level) => (
+            <div
+              key={level}
+              className="w-[10px] h-[10px] rounded-[2px]"
+              style={{
+                backgroundColor:
+                  level === 0 ? "hsl(var(--muted))" :
+                  level === 1 ? "hsl(var(--primary) / 0.25)" :
+                  level === 2 ? "hsl(var(--primary) / 0.5)" :
+                  level === 3 ? "hsl(var(--primary) / 0.75)" :
+                  "hsl(var(--primary))",
+              }}
+            />
+          ))}
+          <span className="text-[10px] text-muted-foreground ml-1">많음</span>
+        </div>
+
       <div className="grid grid-cols-2 gap-3">
         {statCards.map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="bg-card border border-border/50 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
