@@ -169,7 +169,7 @@ const Index = () => {
   const addThought = () => {
     const trimmed = newThought.trim();
     if (!trimmed) return;
-    setThoughts((prev) => [...prev, trimmed]);
+    setThoughts((prev) => [...prev, { text: trimmed }]);
     setNewThought("");
     setShowMap(false);
   };
@@ -177,6 +177,12 @@ const Index = () => {
   const removeThought = (index: number) => {
     setThoughts((prev) => prev.filter((_, i) => i !== index));
     setShowMap(false);
+  };
+
+  const assignMember = (index: number, member: string | undefined) => {
+    setThoughts((prev) =>
+      prev.map((t, i) => (i === index ? { ...t, member } : t))
+    );
   };
 
   const rollRandomTopic = () => {
