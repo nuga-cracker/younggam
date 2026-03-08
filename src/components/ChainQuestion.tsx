@@ -134,8 +134,12 @@ const ChainQuestion = ({ initialChain, initialQuestion, onChainChange }: ChainQu
   const [started, setStarted] = useState(!!(initialChain?.length || initialQuestion));
   const [currentQ, setCurrentQ] = useState(initialQuestion || "");
   const [viewMode, setViewMode] = useState<"list" | "timeline">("list");
+  // Notify parent on chain changes
+  useEffect(() => {
+    if (started) onChainChange?.(chain, currentQ);
+  }, [chain, currentQ, started]);
 
-  const startWithRandom = () => {
+
     const q = STARTER_QUESTIONS[Math.floor(Math.random() * STARTER_QUESTIONS.length)];
     setCurrentQ(q);
     setChain([]);
