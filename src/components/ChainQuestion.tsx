@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, CornerDownRight, RotateCcw } from "lucide-react";
+import { Plus, CornerDownRight, RotateCcw, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
