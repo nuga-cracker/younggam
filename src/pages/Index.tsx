@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Trash2, Sparkles, Download, Shuffle, Pencil, Brain, MessageCircleQuestion, Menu, Copy, Users, X, Maximize2, LayoutGrid, Target, BarChart3, Cloud, FileJson, FileText, Share2 } from "lucide-react";
+import { Plus, Trash2, Sparkles, Download, Shuffle, Pencil, Brain, MessageCircleQuestion, Menu, Copy, Users, X, Maximize2, LayoutGrid, Target, BarChart3, Cloud, FileJson, FileText, Share2, TrendingUp } from "lucide-react";
 
 import { toPng } from "html-to-image";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import PriorityMatrix from "@/components/PriorityMatrix";
 import WordCloud from "@/components/WordCloud";
 import ChainQuestion from "@/components/ChainQuestion";
 import ThemeToggle from "@/components/ThemeToggle";
+import StatsDashboard from "@/components/StatsDashboard";
+import OnboardingGuide from "@/components/OnboardingGuide";
 import AppSidebar, { SavedSession, loadSessions, saveSessions } from "@/components/AppSidebar";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 
