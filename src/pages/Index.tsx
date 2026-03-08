@@ -98,6 +98,7 @@ const Index = () => {
 
   // Persist sessions
   useEffect(() => { saveSessions(sessions); }, [sessions]);
+  useEffect(() => { saveCustomCategories(customCategories); }, [customCategories]);
 
   // Load shared session from URL hash
   useEffect(() => {
