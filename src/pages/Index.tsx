@@ -128,32 +128,37 @@ const Index = () => {
 
 
   const saveCurrentSession = useCallback(() => {
-    const activeKeyword = tab === "manual" ? keyword : randomKeyword;
-    const savedThoughts = tab === "manual" ? thoughts.map((t) => t.text) : randomThoughts;
-    if (!activeKeyword.trim()) return;
+    const isChain = mode === "chain";
+    const activeKeyword = isChain ? (chainCurrentQ || "꼬리질문") : (tab === "manual" ? keyword : randomKeyword);
+    const savedThoughts = isChain ? chainData.map((c) => c.answer) : (tab === "manual" ? thoughts.map((t) => t.text) : randomThoughts);
+    if (!activeKeyword.trim() && savedThoughts.length === 0) return;
+
+    const sessionTitle = isChain ? (chainData[0]?.question?.slice(0, 20) || "꼬리질문") : activeKeyword;
 
     if (activeSessionId) {
       setSessions((prev) =>
         prev.map((s) =>
           s.id === activeSessionId
-            ? { ...s, keyword: activeKeyword, thoughts: savedThoughts, title: activeKeyword, category: findCategory(activeKeyword) }
+            ? { ...s, keyword: activeKeyword, thoughts: savedThoughts, title: sessionTitle, category: isChain ? "꼬리질문" : findCategory(activeKeyword), chainData: isChain ? chainData : undefined, type: isChain ? "chain" : "mindmap" }
             : s
         )
       );
     } else {
+      if (!activeKeyword.trim() && savedThoughts.length === 0) return;
       const newSession: SavedSession = {
         id: genId(),
-        title: activeKeyword,
-        type: mode === "mindmap" ? "mindmap" : "chain",
-        category: findCategory(activeKeyword),
+        title: sessionTitle,
+        type: isChain ? "chain" : "mindmap",
+        category: isChain ? "꼬리질문" : findCategory(activeKeyword),
         keyword: activeKeyword,
         thoughts: savedThoughts,
+        chainData: isChain ? chainData : undefined,
         createdAt: Date.now(),
       };
       setSessions((prev) => [newSession, ...prev]);
       setActiveSessionId(newSession.id);
     }
-  }, [activeSessionId, keyword, thoughts, randomKeyword, randomThoughts, tab, mode]);
+  }, [activeSessionId, keyword, thoughts, randomKeyword, randomThoughts, tab, mode, chainData, chainCurrentQ]);
 
   // Auto-save on keyword/thoughts change (debounced via effect)
   useEffect(() => {
