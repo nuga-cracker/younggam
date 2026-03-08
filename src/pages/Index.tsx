@@ -88,6 +88,7 @@ const Index = () => {
         id: genId(),
         title: activeKeyword,
         type: mode === "mindmap" ? "mindmap" : "chain",
+        category: findCategory(activeKeyword),
         keyword: activeKeyword,
         thoughts: activeThoughts,
         createdAt: Date.now(),
