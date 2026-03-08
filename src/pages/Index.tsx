@@ -90,6 +90,8 @@ const Index = () => {
   const [members, setMembers] = useState<string[]>([]);
   const [newMember, setNewMember] = useState("");
   const [selectedMember, setSelectedMember] = useState<string>("");
+  const [chainData, setChainData] = useState<{ question: string; answer: string }[]>([]);
+  const [chainCurrentQ, setChainCurrentQ] = useState("");
 
   const { toggleSidebar } = useSidebar();
 
