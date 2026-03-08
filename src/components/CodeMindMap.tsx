@@ -8,6 +8,8 @@ interface ThoughtItem {
 interface CodeMindMapProps {
   keyword: string;
   thoughts: ThoughtItem[];
+  onEditKeyword?: (newKeyword: string) => void;
+  onEditThought?: (index: number, newText: string) => void;
 }
 
 const NODE_COLORS = [
@@ -32,20 +34,22 @@ interface NodeData {
   color: typeof NODE_COLORS[0];
 }
 
-const CodeMindMap = ({ keyword, thoughts }: CodeMindMapProps) => {
+const CodeMindMap = ({ keyword, thoughts, onEditKeyword, onEditThought }: CodeMindMapProps) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Pan & zoom state
   const [viewBox, setViewBox] = useState({ x: 0, y: 0, w: 800, h: 600 });
   const [isPanning, setIsPanning] = useState(false);
   const panStart = useRef({ x: 0, y: 0, vx: 0, vy: 0 });
 
-  // Node drag state
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const dragStart = useRef({ x: 0, y: 0, nx: 0, ny: 0 });
 
-  // Node positions (mutable after drag)
+  // Inline edit state: -1 = root, 0+ = child index, null = none
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editText, setEditText] = useState("");
+  const editInputRef = useRef<HTMLInputElement>(null);
+
   const initialLayout = useMemo(() => {
     const count = thoughts.length;
     if (count === 0) return null;
@@ -86,7 +90,6 @@ const CodeMindMap = ({ keyword, thoughts }: CodeMindMapProps) => {
   const [nodePositions, setNodePositions] = useState<{ x: number; y: number }[]>([]);
   const [rootPos, setRootPos] = useState({ x: 200, y: 150 });
 
-  // Reset positions when layout changes
   useEffect(() => {
     if (!initialLayout) return;
     setNodePositions(initialLayout.nodes.map((n) => ({ x: n.x, y: n.y })));
@@ -103,52 +106,38 @@ const CodeMindMap = ({ keyword, thoughts }: CodeMindMapProps) => {
     };
   }, [viewBox]);
 
-  // Zoom with wheel
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
     const scaleFactor = e.deltaY > 0 ? 1.1 : 0.9;
     const pt = getSvgPoint(e.clientX, e.clientY);
-
     setViewBox((prev) => {
       const newW = Math.max(200, Math.min(prev.w * scaleFactor, 3000));
       const newH = Math.max(150, Math.min(prev.h * scaleFactor, 2500));
       const ratio = newW / prev.w;
-      return {
-        x: pt.x - (pt.x - prev.x) * ratio,
-        y: pt.y - (pt.y - prev.y) * ratio,
-        w: newW,
-        h: newH,
-      };
+      return { x: pt.x - (pt.x - prev.x) * ratio, y: pt.y - (pt.y - prev.y) * ratio, w: newW, h: newH };
     });
   }, [getSvgPoint]);
 
-  // Pan
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (dragIndex !== null) return;
+    if (dragIndex !== null || editingIndex !== null) return;
     setIsPanning(true);
     panStart.current = { x: e.clientX, y: e.clientY, vx: viewBox.x, vy: viewBox.y };
-  }, [dragIndex, viewBox]);
+  }, [dragIndex, viewBox, editingIndex]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (dragIndex !== null) {
-      // Dragging a node
       const pt = getSvgPoint(e.clientX, e.clientY);
       const dx = pt.x - dragStart.current.x;
       const dy = pt.y - dragStart.current.y;
-
       if (dragIndex === -1) {
-        // Root node
         setRootPos({ x: dragStart.current.nx + dx, y: dragStart.current.ny + dy });
       } else {
         setNodePositions((prev) =>
-          prev.map((p, i) =>
-            i === dragIndex ? { x: dragStart.current.nx + dx, y: dragStart.current.ny + dy } : p
-          )
+          prev.map((p, i) => i === dragIndex ? { x: dragStart.current.nx + dx, y: dragStart.current.ny + dy } : p)
         );
       }
       return;
     }
-
     if (!isPanning) return;
     const rect = svgRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -163,11 +152,40 @@ const CodeMindMap = ({ keyword, thoughts }: CodeMindMapProps) => {
   }, []);
 
   const startNodeDrag = useCallback((e: React.MouseEvent, index: number, nx: number, ny: number) => {
+    if (editingIndex !== null) return;
     e.stopPropagation();
     const pt = getSvgPoint(e.clientX, e.clientY);
     setDragIndex(index);
     dragStart.current = { x: pt.x, y: pt.y, nx, ny };
-  }, [getSvgPoint]);
+  }, [getSvgPoint, editingIndex]);
+
+  // Double-click to edit
+  const handleDoubleClick = useCallback((e: React.MouseEvent, index: number, currentText: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setEditingIndex(index);
+    setEditText(currentText);
+    setTimeout(() => editInputRef.current?.focus(), 50);
+  }, []);
+
+  const commitEdit = useCallback(() => {
+    if (editingIndex === null) return;
+    const trimmed = editText.trim();
+    if (trimmed) {
+      if (editingIndex === -1) {
+        onEditKeyword?.(trimmed);
+      } else {
+        onEditThought?.(editingIndex, trimmed);
+      }
+    }
+    setEditingIndex(null);
+    setEditText("");
+  }, [editingIndex, editText, onEditKeyword, onEditThought]);
+
+  const cancelEdit = useCallback(() => {
+    setEditingIndex(null);
+    setEditText("");
+  }, []);
 
   // Touch support
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -192,12 +210,68 @@ const CodeMindMap = ({ keyword, thoughts }: CodeMindMapProps) => {
 
   const { rootW, rootH, nodes, width, height, offsetY } = initialLayout;
 
-  const lines = nodePositions.map((n) => ({
-    x1: rootPos.x,
-    y1: rootPos.y + offsetY,
-    x2: n.x - (nodes[0]?.w || 100) / 2,
-    y2: n.y + offsetY,
-  }));
+  // Helper to get screen position for the edit input overlay
+  const getScreenPos = (svgX: number, svgY: number, w: number, h: number) => {
+    if (!svgRef.current) return { left: 0, top: 0, width: 0, height: 0 };
+    const rect = svgRef.current.getBoundingClientRect();
+    const scaleX = rect.width / viewBox.w;
+    const scaleY = rect.height / viewBox.h;
+    return {
+      left: rect.left + (svgX - viewBox.x - w / 2) * scaleX,
+      top: rect.top + (svgY - viewBox.y - h / 2) * scaleY,
+      width: w * scaleX,
+      height: h * scaleY,
+    };
+  };
+
+  // Compute edit input position
+  let editOverlay: React.ReactNode = null;
+  if (editingIndex !== null) {
+    let pos: { left: number; top: number; width: number; height: number };
+    if (editingIndex === -1) {
+      pos = getScreenPos(rootPos.x, rootPos.y + offsetY, rootW, rootH);
+    } else {
+      const np = nodePositions[editingIndex];
+      const nd = nodes[editingIndex];
+      if (np && nd) {
+        pos = getScreenPos(np.x, np.y + offsetY, nd.w, nd.h);
+      } else {
+        pos = { left: 0, top: 0, width: 100, height: 40 };
+      }
+    }
+    editOverlay = (
+      <div
+        style={{
+          position: "fixed",
+          left: pos.left,
+          top: pos.top,
+          width: pos.width,
+          height: pos.height,
+          zIndex: 100,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <input
+          ref={editInputRef}
+          value={editText}
+          onChange={(e) => setEditText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commitEdit();
+            if (e.key === "Escape") cancelEdit();
+          }}
+          onBlur={commitEdit}
+          maxLength={20}
+          className="w-full h-full text-center font-bold rounded-xl border-2 border-primary bg-card text-foreground shadow-lg outline-none"
+          style={{
+            fontSize: editingIndex === -1 ? 18 : 15,
+            fontFamily: "'Pretendard', system-ui, sans-serif",
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div ref={containerRef} className="w-full overflow-hidden flex justify-center relative" style={{ minHeight: 300 }}>
@@ -266,11 +340,12 @@ const CodeMindMap = ({ keyword, thoughts }: CodeMindMapProps) => {
             );
           })}
 
-          {/* Root node (draggable) */}
+          {/* Root node */}
           <g
             filter="url(#node-shadow)"
-            style={{ cursor: "grab" }}
+            style={{ cursor: editingIndex !== null ? "default" : "grab" }}
             onMouseDown={(e) => startNodeDrag(e, -1, rootPos.x, rootPos.y)}
+            onDoubleClick={(e) => handleDoubleClick(e, -1, keyword)}
           >
             <rect
               x={rootPos.x - rootW / 2}
@@ -279,34 +354,38 @@ const CodeMindMap = ({ keyword, thoughts }: CodeMindMapProps) => {
               height={rootH}
               rx={14}
               ry={14}
-              fill="hsl(220, 55%, 50%)"
-              stroke="hsl(220, 55%, 40%)"
-              strokeWidth="2"
+              fill={editingIndex === -1 ? "hsl(220, 55%, 45%)" : "hsl(220, 55%, 50%)"}
+              stroke={editingIndex === -1 ? "hsl(220, 60%, 55%)" : "hsl(220, 55%, 40%)"}
+              strokeWidth={editingIndex === -1 ? 3 : 2}
             />
-            <text
-              x={rootPos.x}
-              y={rootPos.y + 1}
-              textAnchor="middle"
-              dominantBaseline="central"
-              fill="white"
-              fontSize="18"
-              fontWeight="800"
-              fontFamily="'Pretendard', system-ui, sans-serif"
-            >
-              {keyword}
-            </text>
+            {editingIndex !== -1 && (
+              <text
+                x={rootPos.x}
+                y={rootPos.y + 1}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill="white"
+                fontSize="18"
+                fontWeight="800"
+                fontFamily="'Pretendard', system-ui, sans-serif"
+              >
+                {keyword}
+              </text>
+            )}
           </g>
 
-          {/* Child nodes (draggable) */}
+          {/* Child nodes */}
           {nodePositions.map((pos, i) => {
             const n = nodes[i];
             if (!n) return null;
+            const isEditing = editingIndex === i;
             return (
               <g
                 key={`node-${i}`}
                 filter="url(#node-shadow)"
-                style={{ cursor: "grab" }}
+                style={{ cursor: editingIndex !== null ? "default" : "grab" }}
                 onMouseDown={(e) => startNodeDrag(e, i, pos.x, pos.y)}
+                onDoubleClick={(e) => handleDoubleClick(e, i, n.label)}
               >
                 <rect
                   x={pos.x - n.w / 2}
@@ -316,27 +395,42 @@ const CodeMindMap = ({ keyword, thoughts }: CodeMindMapProps) => {
                   rx={12}
                   ry={12}
                   fill={n.color.bg}
-                  stroke={n.color.border}
-                  strokeWidth="1.5"
+                  stroke={isEditing ? "hsl(220, 60%, 55%)" : n.color.border}
+                  strokeWidth={isEditing ? 3 : 1.5}
                 />
-                {n.member ? (
-                  <>
+                {!isEditing && (
+                  n.member ? (
+                    <>
+                      <text
+                        x={pos.x - n.w / 2 + 20}
+                        y={pos.y + 1}
+                        textAnchor="start"
+                        dominantBaseline="central"
+                        fill={n.color.border}
+                        fontSize="13"
+                        fontWeight="700"
+                        fontFamily="'Pretendard', system-ui, sans-serif"
+                      >
+                        {n.member}
+                      </text>
+                      <text
+                        x={pos.x - n.w / 2 + 20 + n.member.length * 9 + 6}
+                        y={pos.y + 1}
+                        textAnchor="start"
+                        dominantBaseline="central"
+                        fill={n.color.text}
+                        fontSize="15"
+                        fontWeight="700"
+                        fontFamily="'Pretendard', system-ui, sans-serif"
+                      >
+                        {n.label}
+                      </text>
+                    </>
+                  ) : (
                     <text
-                      x={pos.x - n.w / 2 + 20}
+                      x={pos.x}
                       y={pos.y + 1}
-                      textAnchor="start"
-                      dominantBaseline="central"
-                      fill={n.color.border}
-                      fontSize="13"
-                      fontWeight="700"
-                      fontFamily="'Pretendard', system-ui, sans-serif"
-                    >
-                      {n.member}
-                    </text>
-                    <text
-                      x={pos.x - n.w / 2 + 20 + n.member.length * 9 + 6}
-                      y={pos.y + 1}
-                      textAnchor="start"
+                      textAnchor="middle"
                       dominantBaseline="central"
                       fill={n.color.text}
                       fontSize="15"
@@ -345,26 +439,15 @@ const CodeMindMap = ({ keyword, thoughts }: CodeMindMapProps) => {
                     >
                       {n.label}
                     </text>
-                  </>
-                ) : (
-                  <text
-                    x={pos.x}
-                    y={pos.y + 1}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fill={n.color.text}
-                    fontSize="15"
-                    fontWeight="700"
-                    fontFamily="'Pretendard', system-ui, sans-serif"
-                  >
-                    {n.label}
-                  </text>
+                  )
                 )}
               </g>
             );
           })}
         </g>
       </svg>
+
+      {editOverlay}
     </div>
   );
 };
