@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Brain, MessageCircleQuestion, Search, Trash2, Eye, ChevronDown, ChevronUp, Calendar, Tag } from "lucide-react";
+import { ArrowLeft, Brain, MessageCircleQuestion, Search, Trash2, Eye, ChevronDown, ChevronUp, Calendar, Tag, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
