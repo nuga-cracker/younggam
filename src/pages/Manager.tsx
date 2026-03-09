@@ -23,6 +23,39 @@ const Manager = () => {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [selectedSession, setSelectedSession] = useState<SavedSession | null>(null);
 
+  const [seo, setSeo] = useState(() => {
+    const saved = localStorage.getItem("seo_meta");
+    return saved ? JSON.parse(saved) : {
+      title: "younggam",
+      description: "생각을 확장하고 깊이 탐구하는 영감 연구소",
+      ogTitle: "younggam",
+      ogDescription: "생각을 확장하고 깊이 탐구하는 영감 연구소",
+      keywords: "",
+    };
+  });
+  const [seoSaved, setSeoSaved] = useState(false);
+
+  const handleSeoSave = () => {
+    localStorage.setItem("seo_meta", JSON.stringify(seo));
+    document.title = seo.title;
+    const setMeta = (sel: string, val: string) => {
+      const el = document.querySelector(sel);
+      if (el) el.setAttribute("content", val);
+    };
+    setMeta('meta[name="description"]', seo.description);
+    setMeta('meta[property="og:title"]', seo.ogTitle);
+    setMeta('meta[property="og:description"]', seo.ogDescription);
+    setMeta('meta[name="twitter:title"]', seo.ogTitle);
+    setMeta('meta[name="twitter:description"]', seo.ogDescription);
+    if (seo.keywords) {
+      let kw = document.querySelector('meta[name="keywords"]');
+      if (!kw) { kw = document.createElement("meta"); kw.setAttribute("name", "keywords"); document.head.appendChild(kw); }
+      kw.setAttribute("content", seo.keywords);
+    }
+    setSeoSaved(true);
+    setTimeout(() => setSeoSaved(false), 2000);
+  };
+
   const categories = useMemo(() => {
     const set = new Set<string>();
     sessions.forEach((s) => set.add(s.category || "미분류"));
