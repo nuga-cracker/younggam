@@ -8,7 +8,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { loadSessions, type SavedSession } from "@/components/AppSidebar";
 
+const ADMIN_PASSWORD = "77457745";
+
 const Manager = () => {
+  const [authenticated, setAuthenticated] = useState(() => sessionStorage.getItem("admin_auth") === "true");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [sessions] = useState<SavedSession[]>(loadSessions);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
