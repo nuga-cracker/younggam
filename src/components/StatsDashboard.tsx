@@ -152,6 +152,17 @@ const StatsDashboard = ({ sessions }: StatsDashboardProps) => {
         <p className="text-sm font-semibold text-foreground mb-3">🌱 활동 잔디밭</p>
         <TooltipProvider delayDuration={100}>
           <div className="overflow-x-auto">
+            {/* Month labels */}
+            <div className="flex gap-[3px] mb-1 ml-0">
+              {stats.heatmapWeeks.map((_, wi) => {
+                const ml = stats.monthLabels.find((m) => m.weekIndex === wi);
+                return (
+                  <div key={wi} className="w-[11px] text-center">
+                    {ml ? <span className="text-[9px] text-muted-foreground leading-none">{ml.label}</span> : null}
+                  </div>
+                );
+              })}
+            </div>
             <div className="flex gap-[3px]">
               {stats.heatmapWeeks.map((week, wi) => (
                 <div key={wi} className="flex flex-col gap-[3px]">
