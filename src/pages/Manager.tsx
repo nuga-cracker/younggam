@@ -124,15 +124,52 @@ const Manager = () => {
     return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   };
 
-  const handleLogin = () => {
+  const handleLogin = useCallback(() => {
+    // 봇 감지: 허니팟 필드가 채워져 있으면 차단
+    if (honeypot) {
+      setError("비정상적인 접근이 감지되었습니다");
+      return;
+    }
+
+    const now = Date.now();
+    const attempts = getLoginAttempts();
+
+    // 잠금 상태 확인
+    if (attempts.lockedUntil && now < attempts.lockedUntil) {
+      const remaining = Math.ceil((attempts.lockedUntil - now) / 1000);
+      setLockoutRemaining(remaining);
+      setError(`너무 많은 시도로 잠금되었습니다. ${remaining}초 후 다시 시도해주세요`);
+      return;
+    }
+
+    // 잠금 해제 시 초기화
+    if (attempts.lockedUntil && now >= attempts.lockedUntil) {
+      attempts.timestamps = [];
+      attempts.lockedUntil = null;
+    }
+
     if (password === ADMIN_PASSWORD) {
       setAuthenticated(true);
       sessionStorage.setItem("admin_auth", "true");
       setError("");
+      // 성공 시 시도 기록 초기화
+      saveLoginAttempts({ timestamps: [], lockedUntil: null });
     } else {
-      setError("비밀번호가 올바르지 않습니다");
+      // 실패 기록 추가
+      const recentAttempts = [...attempts.timestamps.filter(t => now - t < ATTEMPT_WINDOW), now];
+      
+      if (recentAttempts.length >= MAX_ATTEMPTS) {
+        const lockedUntil = now + LOCKOUT_DURATION;
+        saveLoginAttempts({ timestamps: recentAttempts, lockedUntil });
+        const remaining = Math.ceil(LOCKOUT_DURATION / 1000);
+        setLockoutRemaining(remaining);
+        setError(`${MAX_ATTEMPTS}회 실패로 ${Math.ceil(LOCKOUT_DURATION / 60000)}분간 잠금됩니다`);
+      } else {
+        saveLoginAttempts({ timestamps: recentAttempts, lockedUntil: null });
+        setError(`비밀번호가 올바르지 않습니다 (${recentAttempts.length}/${MAX_ATTEMPTS})`);
+      }
     }
-  };
+  }, [password, honeypot]);
 
   if (!authenticated) {
     return (
