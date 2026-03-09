@@ -172,17 +172,35 @@ const Manager = () => {
   }, [password, honeypot]);
 
   if (!authenticated) {
+    const isLocked = (() => {
+      const attempts = getLoginAttempts();
+      return !!(attempts.lockedUntil && Date.now() < attempts.lockedUntil);
+    })();
+
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
         <div className="bg-card border border-border/50 rounded-2xl p-8 w-full max-w-sm space-y-6 shadow-lg">
           <div className="text-center space-y-2">
-            <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-              <Lock className="h-6 w-6 text-muted-foreground" />
+            <div className={`mx-auto w-12 h-12 rounded-full flex items-center justify-center ${isLocked ? 'bg-destructive/10' : 'bg-muted'}`}>
+              {isLocked ? <ShieldAlert className="h-6 w-6 text-destructive" /> : <Lock className="h-6 w-6 text-muted-foreground" />}
             </div>
             <h1 className="text-xl font-bold text-foreground">관리자 인증</h1>
-            <p className="text-sm text-muted-foreground">비밀번호를 입력해주세요</p>
+            <p className="text-sm text-muted-foreground">
+              {isLocked ? "일시적으로 잠금되었습니다" : "비밀번호를 입력해주세요"}
+            </p>
           </div>
           <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-4">
+            {/* 허니팟: 봇 감지용 숨겨진 필드 */}
+            <div className="absolute opacity-0 pointer-events-none" aria-hidden="true" tabIndex={-1}>
+              <Input
+                type="text"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+              />
+            </div>
             <Input
               type="password"
               placeholder="비밀번호"
@@ -190,10 +208,19 @@ const Manager = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="rounded-lg"
               autoFocus
+              disabled={isLocked}
             />
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full rounded-lg">확인</Button>
+            {error && (
+              <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2">
+                <ShieldAlert className="h-4 w-4 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+            <Button type="submit" className="w-full rounded-lg" disabled={isLocked}>확인</Button>
           </form>
+          <p className="text-[10px] text-muted-foreground text-center">
+            비정상적인 접근 시도는 자동으로 차단됩니다
+          </p>
         </div>
       </div>
     );
