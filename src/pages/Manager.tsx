@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Brain, MessageCircleQuestion, Search, Trash2, Eye, ChevronDown, ChevronUp, Calendar, Tag, Lock } from "lucide-react";
+import { ArrowLeft, Brain, MessageCircleQuestion, Search, Trash2, Eye, ChevronDown, ChevronUp, Calendar, Tag, Lock, Globe, Save } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -21,6 +22,39 @@ const Manager = () => {
   const [sortField, setSortField] = useState<"createdAt" | "title">("createdAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [selectedSession, setSelectedSession] = useState<SavedSession | null>(null);
+
+  const [seo, setSeo] = useState(() => {
+    const saved = localStorage.getItem("seo_meta");
+    return saved ? JSON.parse(saved) : {
+      title: "younggam",
+      description: "생각을 확장하고 깊이 탐구하는 영감 연구소",
+      ogTitle: "younggam",
+      ogDescription: "생각을 확장하고 깊이 탐구하는 영감 연구소",
+      keywords: "",
+    };
+  });
+  const [seoSaved, setSeoSaved] = useState(false);
+
+  const handleSeoSave = () => {
+    localStorage.setItem("seo_meta", JSON.stringify(seo));
+    document.title = seo.title;
+    const setMeta = (sel: string, val: string) => {
+      const el = document.querySelector(sel);
+      if (el) el.setAttribute("content", val);
+    };
+    setMeta('meta[name="description"]', seo.description);
+    setMeta('meta[property="og:title"]', seo.ogTitle);
+    setMeta('meta[property="og:description"]', seo.ogDescription);
+    setMeta('meta[name="twitter:title"]', seo.ogTitle);
+    setMeta('meta[name="twitter:description"]', seo.ogDescription);
+    if (seo.keywords) {
+      let kw = document.querySelector('meta[name="keywords"]');
+      if (!kw) { kw = document.createElement("meta"); kw.setAttribute("name", "keywords"); document.head.appendChild(kw); }
+      kw.setAttribute("content", seo.keywords);
+    }
+    setSeoSaved(true);
+    setTimeout(() => setSeoSaved(false), 2000);
+  };
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -245,6 +279,43 @@ const Manager = () => {
               <p className="text-xs text-muted-foreground">{label}</p>
             </div>
           ))}
+        </div>
+
+        {/* SEO Meta Tags */}
+        <div className="bg-card border border-border/50 rounded-xl p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <Globe className="h-5 w-5 text-muted-foreground" />
+            <h2 className="text-lg font-bold text-foreground">SEO 메타 태그 관리</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-foreground">페이지 제목 (title)</label>
+              <Input value={seo.title} onChange={(e) => setSeo({ ...seo, title: e.target.value })} className="rounded-lg" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-foreground">키워드 (keywords)</label>
+              <Input value={seo.keywords} onChange={(e) => setSeo({ ...seo, keywords: e.target.value })} placeholder="키워드1, 키워드2, ..." className="rounded-lg" />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-xs font-semibold text-foreground">설명 (description)</label>
+              <Textarea value={seo.description} onChange={(e) => setSeo({ ...seo, description: e.target.value })} className="rounded-lg resize-none" rows={2} />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-foreground">OG 제목 (og:title)</label>
+              <Input value={seo.ogTitle} onChange={(e) => setSeo({ ...seo, ogTitle: e.target.value })} className="rounded-lg" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-foreground">OG 설명 (og:description)</label>
+              <Input value={seo.ogDescription} onChange={(e) => setSeo({ ...seo, ogDescription: e.target.value })} className="rounded-lg" />
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button onClick={handleSeoSave} className="rounded-lg gap-2">
+              <Save className="h-4 w-4" />
+              저장 및 적용
+            </Button>
+            {seoSaved && <span className="text-sm text-primary animate-in fade-in">✓ 저장되었습니다</span>}
+          </div>
         </div>
       </div>
 
