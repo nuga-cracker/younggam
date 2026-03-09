@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Brain, MessageCircleQuestion, Search, Trash2, Eye, ChevronDown, ChevronUp, Calendar, Tag, Lock, Globe, Save } from "lucide-react";
+import { ArrowLeft, Brain, MessageCircleQuestion, Search, Trash2, Eye, ChevronDown, ChevronUp, Calendar, Tag, Lock, Globe, Save, ShieldAlert } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,11 +10,27 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { loadSessions, type SavedSession } from "@/components/AppSidebar";
 
 const ADMIN_PASSWORD = "77457745";
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_DURATION = 5 * 60 * 1000; // 5분
+const ATTEMPT_WINDOW = 60 * 1000; // 1분 내 시도 횟수 추적
+
+const getLoginAttempts = (): { timestamps: number[]; lockedUntil: number | null } => {
+  try {
+    const data = localStorage.getItem("admin_login_attempts");
+    return data ? JSON.parse(data) : { timestamps: [], lockedUntil: null };
+  } catch { return { timestamps: [], lockedUntil: null }; }
+};
+
+const saveLoginAttempts = (data: { timestamps: number[]; lockedUntil: number | null }) => {
+  localStorage.setItem("admin_login_attempts", JSON.stringify(data));
+};
 
 const Manager = () => {
   const [authenticated, setAuthenticated] = useState(() => sessionStorage.getItem("admin_auth") === "true");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [lockoutRemaining, setLockoutRemaining] = useState(0);
+  const [honeypot, setHoneypot] = useState(""); // 봇 감지용 숨겨진 필드
   const [sessions] = useState<SavedSession[]>(loadSessions);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -108,28 +124,83 @@ const Manager = () => {
     return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   };
 
-  const handleLogin = () => {
+  const handleLogin = useCallback(() => {
+    // 봇 감지: 허니팟 필드가 채워져 있으면 차단
+    if (honeypot) {
+      setError("비정상적인 접근이 감지되었습니다");
+      return;
+    }
+
+    const now = Date.now();
+    const attempts = getLoginAttempts();
+
+    // 잠금 상태 확인
+    if (attempts.lockedUntil && now < attempts.lockedUntil) {
+      const remaining = Math.ceil((attempts.lockedUntil - now) / 1000);
+      setLockoutRemaining(remaining);
+      setError(`너무 많은 시도로 잠금되었습니다. ${remaining}초 후 다시 시도해주세요`);
+      return;
+    }
+
+    // 잠금 해제 시 초기화
+    if (attempts.lockedUntil && now >= attempts.lockedUntil) {
+      attempts.timestamps = [];
+      attempts.lockedUntil = null;
+    }
+
     if (password === ADMIN_PASSWORD) {
       setAuthenticated(true);
       sessionStorage.setItem("admin_auth", "true");
       setError("");
+      // 성공 시 시도 기록 초기화
+      saveLoginAttempts({ timestamps: [], lockedUntil: null });
     } else {
-      setError("비밀번호가 올바르지 않습니다");
+      // 실패 기록 추가
+      const recentAttempts = [...attempts.timestamps.filter(t => now - t < ATTEMPT_WINDOW), now];
+      
+      if (recentAttempts.length >= MAX_ATTEMPTS) {
+        const lockedUntil = now + LOCKOUT_DURATION;
+        saveLoginAttempts({ timestamps: recentAttempts, lockedUntil });
+        const remaining = Math.ceil(LOCKOUT_DURATION / 1000);
+        setLockoutRemaining(remaining);
+        setError(`${MAX_ATTEMPTS}회 실패로 ${Math.ceil(LOCKOUT_DURATION / 60000)}분간 잠금됩니다`);
+      } else {
+        saveLoginAttempts({ timestamps: recentAttempts, lockedUntil: null });
+        setError(`비밀번호가 올바르지 않습니다 (${recentAttempts.length}/${MAX_ATTEMPTS})`);
+      }
     }
-  };
+  }, [password, honeypot]);
 
   if (!authenticated) {
+    const isLocked = (() => {
+      const attempts = getLoginAttempts();
+      return !!(attempts.lockedUntil && Date.now() < attempts.lockedUntil);
+    })();
+
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
         <div className="bg-card border border-border/50 rounded-2xl p-8 w-full max-w-sm space-y-6 shadow-lg">
           <div className="text-center space-y-2">
-            <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-              <Lock className="h-6 w-6 text-muted-foreground" />
+            <div className={`mx-auto w-12 h-12 rounded-full flex items-center justify-center ${isLocked ? 'bg-destructive/10' : 'bg-muted'}`}>
+              {isLocked ? <ShieldAlert className="h-6 w-6 text-destructive" /> : <Lock className="h-6 w-6 text-muted-foreground" />}
             </div>
             <h1 className="text-xl font-bold text-foreground">관리자 인증</h1>
-            <p className="text-sm text-muted-foreground">비밀번호를 입력해주세요</p>
+            <p className="text-sm text-muted-foreground">
+              {isLocked ? "일시적으로 잠금되었습니다" : "비밀번호를 입력해주세요"}
+            </p>
           </div>
           <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-4">
+            {/* 허니팟: 봇 감지용 숨겨진 필드 */}
+            <div className="absolute opacity-0 pointer-events-none" aria-hidden="true" tabIndex={-1}>
+              <Input
+                type="text"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+              />
+            </div>
             <Input
               type="password"
               placeholder="비밀번호"
@@ -137,10 +208,19 @@ const Manager = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="rounded-lg"
               autoFocus
+              disabled={isLocked}
             />
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full rounded-lg">확인</Button>
+            {error && (
+              <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2">
+                <ShieldAlert className="h-4 w-4 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+            <Button type="submit" className="w-full rounded-lg" disabled={isLocked}>확인</Button>
           </form>
+          <p className="text-[10px] text-muted-foreground text-center">
+            비정상적인 접근 시도는 자동으로 차단됩니다
+          </p>
         </div>
       </div>
     );
