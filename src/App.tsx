@@ -20,6 +20,7 @@ const App = () => (
           <div className="min-h-screen flex w-full">
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/manager" element={<Manager />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
