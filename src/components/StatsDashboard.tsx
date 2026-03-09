@@ -63,7 +63,38 @@ const StatsDashboard = ({ sessions }: StatsDashboardProps) => {
 
     const maxCount = Math.max(1, ...Array.from(dayCountMap.values()));
 
-    return { mindmapSessions: mindmapSessions.length, chainSessions: chainSessions.length, avgDepth, maxDepth, totalThoughts, topCategories, recentCount, heatmapWeeks, maxCount };
+    // Keyword TOP 10
+    const kwMap = new Map<string, number>();
+    sessions.forEach((s) => {
+      // Count main keyword
+      if (s.keyword?.trim()) {
+        const kw = s.keyword.trim();
+        kwMap.set(kw, (kwMap.get(kw) || 0) + 1);
+      }
+      // Count individual thoughts as keywords
+      s.thoughts.forEach((t) => {
+        const word = (typeof t === "string" ? t : t).trim();
+        if (word) kwMap.set(word, (kwMap.get(word) || 0) + 1);
+      });
+    });
+    const topKeywords = Array.from(kwMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    const maxKwCount = topKeywords.length > 0 ? topKeywords[0][1] : 1;
+
+    // Month labels for heatmap
+    const monthLabels: { label: string; weekIndex: number }[] = [];
+    let lastMonth = -1;
+    heatmapWeeks.forEach((week, wi) => {
+      const firstDay = week.find((d) => d.count !== -1);
+      if (firstDay) {
+        const m = firstDay.date.getMonth();
+        if (m !== lastMonth) {
+          monthLabels.push({ label: `${m + 1}월`, weekIndex: wi });
+          lastMonth = m;
+        }
+      }
+    });
+
+    return { mindmapSessions: mindmapSessions.length, chainSessions: chainSessions.length, avgDepth, maxDepth, totalThoughts, topCategories, recentCount, heatmapWeeks, maxCount, topKeywords, maxKwCount, monthLabels };
   }, [sessions]);
 
   if (sessions.length === 0) {
