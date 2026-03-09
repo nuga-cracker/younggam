@@ -280,6 +280,43 @@ const Manager = () => {
             </div>
           ))}
         </div>
+
+        {/* SEO Meta Tags */}
+        <div className="bg-card border border-border/50 rounded-xl p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <Globe className="h-5 w-5 text-muted-foreground" />
+            <h2 className="text-lg font-bold text-foreground">SEO 메타 태그 관리</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-foreground">페이지 제목 (title)</label>
+              <Input value={seo.title} onChange={(e) => setSeo({ ...seo, title: e.target.value })} className="rounded-lg" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-foreground">키워드 (keywords)</label>
+              <Input value={seo.keywords} onChange={(e) => setSeo({ ...seo, keywords: e.target.value })} placeholder="키워드1, 키워드2, ..." className="rounded-lg" />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-xs font-semibold text-foreground">설명 (description)</label>
+              <Textarea value={seo.description} onChange={(e) => setSeo({ ...seo, description: e.target.value })} className="rounded-lg resize-none" rows={2} />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-foreground">OG 제목 (og:title)</label>
+              <Input value={seo.ogTitle} onChange={(e) => setSeo({ ...seo, ogTitle: e.target.value })} className="rounded-lg" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-foreground">OG 설명 (og:description)</label>
+              <Input value={seo.ogDescription} onChange={(e) => setSeo({ ...seo, ogDescription: e.target.value })} className="rounded-lg" />
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button onClick={handleSeoSave} className="rounded-lg gap-2">
+              <Save className="h-4 w-4" />
+              저장 및 적용
+            </Button>
+            {seoSaved && <span className="text-sm text-primary animate-in fade-in">✓ 저장되었습니다</span>}
+          </div>
+        </div>
       </div>
 
       {/* Detail Dialog */}
