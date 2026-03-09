@@ -223,6 +223,35 @@ const StatsDashboard = ({ sessions }: StatsDashboardProps) => {
         </div>
       )}
 
+      {/* Keyword TOP 10 */}
+      {stats.topKeywords.length > 0 && (
+        <div className="bg-card border border-border/50 rounded-xl p-5 shadow-sm">
+          <p className="text-sm font-semibold text-foreground mb-3">🔑 자주 사용한 키워드 TOP 10</p>
+          <div className="space-y-2">
+            {stats.topKeywords.map(([kw, count], i) => {
+              const pct = Math.round(count / stats.maxKwCount * 100);
+              return (
+                <div key={kw} className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-primary w-5 text-right">{i + 1}</span>
+                  <span className="text-xs text-foreground w-24 truncate font-medium">{kw}</span>
+                  <div className="flex-1 h-5 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full flex items-center justify-end pr-2 transition-all duration-500"
+                      style={{
+                        width: `${Math.max(pct, 8)}%`,
+                        background: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.5))",
+                      }}
+                    >
+                      <span className="text-[10px] font-bold text-primary-foreground">{count}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {stats.topCategories.length > 0 && (
         <div className="bg-card border border-border/50 rounded-xl p-5 shadow-sm">
           <p className="text-sm font-semibold text-foreground mb-3">자주 탐구한 분야</p>
