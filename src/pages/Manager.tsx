@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Brain, MessageCircleQuestion, Search, Trash2, Eye, ChevronDown, ChevronUp, Calendar, Tag, Lock, Globe, Save } from "lucide-react";
+import { ArrowLeft, Brain, MessageCircleQuestion, Search, Trash2, Eye, ChevronDown, ChevronUp, Calendar, Tag, Lock, Globe, Save, ShieldAlert } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,11 +10,27 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { loadSessions, type SavedSession } from "@/components/AppSidebar";
 
 const ADMIN_PASSWORD = "77457745";
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_DURATION = 5 * 60 * 1000; // 5분
+const ATTEMPT_WINDOW = 60 * 1000; // 1분 내 시도 횟수 추적
+
+const getLoginAttempts = (): { timestamps: number[]; lockedUntil: number | null } => {
+  try {
+    const data = localStorage.getItem("admin_login_attempts");
+    return data ? JSON.parse(data) : { timestamps: [], lockedUntil: null };
+  } catch { return { timestamps: [], lockedUntil: null }; }
+};
+
+const saveLoginAttempts = (data: { timestamps: number[]; lockedUntil: number | null }) => {
+  localStorage.setItem("admin_login_attempts", JSON.stringify(data));
+};
 
 const Manager = () => {
   const [authenticated, setAuthenticated] = useState(() => sessionStorage.getItem("admin_auth") === "true");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [lockoutRemaining, setLockoutRemaining] = useState(0);
+  const [honeypot, setHoneypot] = useState(""); // 봇 감지용 숨겨진 필드
   const [sessions] = useState<SavedSession[]>(loadSessions);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
