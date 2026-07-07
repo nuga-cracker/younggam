@@ -144,7 +144,11 @@ const Index = () => {
   const saveCurrentSession = useCallback(() => {
     const isChain = mode === "chain";
     const activeKeyword = isChain ? (chainCurrentQ || "꼬리질문") : (tab === "manual" ? keyword : randomKeyword);
-    const savedThoughts = isChain ? chainData.map((c) => ({ text: c.answer })) : (tab === "manual" ? thoughts : randomThoughts.map((text) => ({ text })));
+    const savedThoughts = isChain
+      ? chainData.map((c) => ({ text: c.answer }))
+      : tab === "manual"
+        ? thoughts
+        : randomThoughts.map((text) => ({ text }));
     if (!activeKeyword.trim() && savedThoughts.length === 0) return;
 
     const sessionTitle = isChain ? (chainData[0]?.question?.slice(0, 20) || "꼬리질문") : activeKeyword;
@@ -308,7 +312,7 @@ const Index = () => {
     }
 
     return <WordCloud keyword={activeKeyword} thoughts={activeThoughts} />;
-  }, [activeKeyword, activeThoughts, tab, vizView]);
+  }, [activeKeyword, activeThoughts, tab, vizView, setKeyword, setRandomKeyword, setThoughts, setRandomThoughts]);
 
   const removeThought = (index: number) => {
     setThoughts((prev) => prev.filter((_, i) => i !== index));
