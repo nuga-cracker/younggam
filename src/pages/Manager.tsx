@@ -67,7 +67,7 @@ const Manager = () => {
         (s) =>
           s.title.toLowerCase().includes(q) ||
           s.keyword.toLowerCase().includes(q) ||
-          s.thoughts.some((t) => t.toLowerCase().includes(q))
+          s.thoughts.some((t) => t.text.toLowerCase().includes(q))
       );
     }
 
@@ -430,7 +430,7 @@ const Manager = () => {
                     <div className="space-y-1">
                       {selectedSession.thoughts.map((t, i) => (
                         <div key={i} className="text-sm text-foreground bg-muted rounded-lg px-3 py-2">
-                          {t}
+                          {t.text}{t.member && <span className="ml-2 text-xs text-muted-foreground">({t.member})</span>}
                         </div>
                       ))}
                     </div>

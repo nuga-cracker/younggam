@@ -1,12 +1,17 @@
 import { readStorageJSON, writeStorageJSON } from "@/lib/storage";
 
+export interface ThoughtItem {
+  text: string;
+  member?: string;
+}
+
 export interface SavedSession {
   id: string;
   title: string;
   type: "mindmap" | "chain";
   category?: string;
   keyword: string;
-  thoughts: string[];
+  thoughts: ThoughtItem[];
   chainData?: { question: string; answer: string }[];
   createdAt: number;
 }
@@ -17,14 +22,14 @@ const CATEGORIES_KEY = "inspiration-categories";
 const isSessionType = (value: unknown): value is SavedSession["type"] =>
   value === "mindmap" || value === "chain";
 
-const normalizeThoughts = (thoughts: unknown): string[] => {
+const normalizeThoughts = (thoughts: unknown): ThoughtItem[] => {
   if (!Array.isArray(thoughts)) {
     return [];
   }
 
   return thoughts.flatMap((item) => {
     if (typeof item === "string") {
-      return item;
+      return [{ text: item }];
     }
 
     if (
@@ -33,7 +38,8 @@ const normalizeThoughts = (thoughts: unknown): string[] => {
       "text" in item &&
       typeof item.text === "string"
     ) {
-      return item.text;
+      const member = "member" in item && typeof item.member === "string" ? item.member : undefined;
+      return [{ text: item.text, ...(member !== undefined ? { member } : {}) }];
     }
 
     return [];

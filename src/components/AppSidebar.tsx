@@ -66,7 +66,7 @@ const AppSidebar = ({
         escapeCSV(s.type === "mindmap" ? "마인드맵" : "꼬리질문"),
         escapeCSV(s.category || "미분류"),
         escapeCSV(s.keyword),
-        escapeCSV(s.thoughts.join(", ")),
+        escapeCSV(s.thoughts.map((t) => t.text).join(", ")),
         escapeCSV(new Date(s.createdAt).toISOString().slice(0, 10)),
       ].join(",")
     );
@@ -97,7 +97,7 @@ const AppSidebar = ({
       (s) =>
         s.title.toLowerCase().includes(q) ||
         s.keyword.toLowerCase().includes(q) ||
-        s.thoughts.some((t) => t.toLowerCase().includes(q))
+        s.thoughts.some((t) => t.text.toLowerCase().includes(q))
     );
   }, [sessions, search]);
 

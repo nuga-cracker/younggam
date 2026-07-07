@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { Plus, Trash2, Sparkles, Download, Shuffle, Pencil, Brain, MessageCircleQuestion, Menu, Copy, Users, X, Maximize2, LayoutGrid, Cloud, FileJson, FileText, Share2, TrendingUp } from "lucide-react";
+import { Plus, Trash2, Sparkles, Download, Shuffle, Pencil, Brain, MessageCircleQuestion, Copy, Users, X, Maximize2, LayoutGrid, Cloud, FileJson, FileText, Share2, TrendingUp } from "lucide-react";
 
 import { toPng } from "html-to-image";
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,8 @@ import ThemeToggle from "@/components/ThemeToggle";
 import StatsDashboard from "@/components/StatsDashboard";
 import OnboardingGuide from "@/components/OnboardingGuide";
 import AppSidebar from "@/components/AppSidebar";
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { loadCustomCategories, loadSessions, saveCustomCategories, saveSessions, type SavedSession } from "@/lib/sessions";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { loadCustomCategories, loadSessions, saveCustomCategories, saveSessions, type SavedSession, type ThoughtItem } from "@/lib/sessions";
 
 const MAX_LENGTH = 20;
 
@@ -71,7 +71,6 @@ const pickRandom = <T,>(arr: T[], count: number): T[] => {
 
 const genId = () => crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`;
 type VizView = "mindmap" | "affinity" | "wordcloud";
-type ThoughtItem = { text: string; member?: string };
 type ExportableThought = string | ThoughtItem;
 type VisualizationOption = {
   key: VizView;
@@ -109,8 +108,6 @@ const Index = () => {
   const [chainData, setChainData] = useState<{ question: string; answer: string }[]>([]);
   const [chainCurrentQ, setChainCurrentQ] = useState("");
 
-  const { toggleSidebar } = useSidebar();
-
   // Persist sessions
   useEffect(() => { saveSessions(sessions); }, [sessions]);
   useEffect(() => { saveCustomCategories(customCategories); }, [customCategories]);
@@ -147,7 +144,7 @@ const Index = () => {
   const saveCurrentSession = useCallback(() => {
     const isChain = mode === "chain";
     const activeKeyword = isChain ? (chainCurrentQ || "꼬리질문") : (tab === "manual" ? keyword : randomKeyword);
-    const savedThoughts = isChain ? chainData.map((c) => c.answer) : (tab === "manual" ? thoughts.map((t) => t.text) : randomThoughts);
+    const savedThoughts = isChain ? chainData.map((c) => ({ text: c.answer })) : (tab === "manual" ? thoughts : randomThoughts.map((text) => ({ text })));
     if (!activeKeyword.trim() && savedThoughts.length === 0) return;
 
     const sessionTitle = isChain ? (chainData[0]?.question?.slice(0, 20) || "꼬리질문") : activeKeyword;
@@ -195,7 +192,7 @@ const Index = () => {
     setActiveSessionId(session.id);
     setMode(session.type === "chain" ? "chain" : "mindmap");
     setKeyword(session.keyword);
-    setThoughts(session.thoughts.map((t) => typeof t === "string" ? { text: t } : t));
+    setThoughts(session.thoughts);
     setKeywordLocked(!!session.keyword);
     setShowMap(false);
     if (session.type === "chain" && session.chainData) {
