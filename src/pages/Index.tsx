@@ -306,7 +306,16 @@ const Index = () => {
     }
 
     return <WordCloud keyword={activeKeyword} thoughts={activeThoughts} />;
-  }, [activeKeyword, activeThoughts, tab, vizView]);
+  }, [
+    activeKeyword,
+    activeThoughts,
+    setKeyword,
+    setRandomKeyword,
+    setRandomThoughts,
+    setThoughts,
+    tab,
+    vizView,
+  ]);
 
   const removeThought = (index: number) => {
     setThoughts((prev) => prev.filter((_, i) => i !== index));

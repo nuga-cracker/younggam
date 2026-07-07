@@ -3,6 +3,7 @@ import { Brain, MessageCircleQuestion, Search, Plus, Trash2, FileText, Tag, Down
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { escapeCSV } from "@/lib/csv";
 import type { SavedSession } from "@/lib/sessions";
 import {
   Sidebar,
@@ -16,8 +17,6 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-
-const escapeCSV = (value: string) => `"${value.replaceAll('"', '""')}"`;
 
 interface AppSidebarProps {
   activeSessionId: string | null;
