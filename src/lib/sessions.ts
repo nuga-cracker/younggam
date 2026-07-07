@@ -109,7 +109,7 @@ export const saveSessions = (sessions: SavedSession[]) => {
 
 export const loadCustomCategories = (): string[] => {
   const categories = readStorageJSON<unknown[]>(CATEGORIES_KEY, []);
-  return categories.filter((category): category is string => typeof category === "string");
+  return categories.filter((category) => typeof category === "string");
 };
 
 export const saveCustomCategories = (categories: string[]) => {

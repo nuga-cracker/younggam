@@ -269,6 +269,11 @@ const Index = () => {
     setShowMap(false);
   };
 
+  const handleChainChange = useCallback((chain: { question: string; answer: string }[], currentQ: string) => {
+    setChainData(chain);
+    setChainCurrentQ(currentQ);
+  }, []);
+
   const visualization = useMemo(() => {
     if (vizView === "mindmap") {
       return (
@@ -306,16 +311,7 @@ const Index = () => {
     }
 
     return <WordCloud keyword={activeKeyword} thoughts={activeThoughts} />;
-  }, [
-    activeKeyword,
-    activeThoughts,
-    setKeyword,
-    setRandomKeyword,
-    setRandomThoughts,
-    setThoughts,
-    tab,
-    vizView,
-  ]);
+  }, [activeKeyword, activeThoughts, tab, vizView]);
 
   const removeThought = (index: number) => {
     setThoughts((prev) => prev.filter((_, i) => i !== index));
@@ -772,10 +768,7 @@ const Index = () => {
                 key={activeSessionId || "new"}
                 initialChain={chainData.length > 0 ? chainData : undefined}
                 initialQuestion={chainCurrentQ || undefined}
-                onChainChange={(chain, currentQ) => {
-                  setChainData(chain);
-                  setChainCurrentQ(currentQ);
-                }}
+                onChainChange={handleChainChange}
               />
             </TabsContent>
 
