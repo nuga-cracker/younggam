@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Plus, Trash2, Sparkles, Download, Shuffle, Pencil, Brain, MessageCircleQuestion, Menu, Copy, Users, X, Maximize2, LayoutGrid, Cloud, FileJson, FileText, Share2, TrendingUp } from "lucide-react";
 
 import { toPng } from "html-to-image";
@@ -269,7 +269,7 @@ const Index = () => {
     setShowMap(false);
   };
 
-  const renderVisualization = () => {
+  const visualization = useMemo(() => {
     if (vizView === "mindmap") {
       return (
         <CodeMindMap
@@ -306,7 +306,7 @@ const Index = () => {
     }
 
     return <WordCloud keyword={activeKeyword} thoughts={activeThoughts} />;
-  };
+  }, [activeKeyword, activeThoughts, tab, vizView]);
 
   const removeThought = (index: number) => {
     setThoughts((prev) => prev.filter((_, i) => i !== index));
@@ -717,7 +717,7 @@ const Index = () => {
                     >
                       <Maximize2 className="h-4 w-4" />
                     </Button>
-                    {renderVisualization()}
+                    {visualization}
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <Button onClick={savePng} variant="outline" className="gap-2 h-10 rounded-xl text-xs">
@@ -750,7 +750,7 @@ const Index = () => {
                         {vizView === "wordcloud" && "워드클라우드"}
                       </DialogTitle>
                       <div className="flex-1 overflow-auto border-2 border-border/40 rounded-2xl p-8 bg-card">
-                        {renderVisualization()}
+                        {visualization}
                       </div>
                     </DialogContent>
                   </Dialog>

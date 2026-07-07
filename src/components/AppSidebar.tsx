@@ -17,6 +17,8 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 
+const escapeCSV = (value: string) => `"${value.replaceAll('"', '""')}"`;
+
 interface AppSidebarProps {
   activeSessionId: string | null;
   onSelectSession: (session: SavedSession) => void;
@@ -58,7 +60,6 @@ const AppSidebar = ({
   };
 
   const exportCSV = () => {
-    const escapeCSV = (value: string) => `"${value.replaceAll('"', '""')}"`;
     const header = "제목,유형,분야,키워드,생각들,생성일";
     const rows = sessions.map((s) =>
       [
