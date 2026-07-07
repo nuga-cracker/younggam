@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Plus, CornerDownRight, RotateCcw, RefreshCw, Eye, List, Download, Copy, SkipForward } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -134,10 +134,15 @@ const ChainQuestion = ({ initialChain, initialQuestion, onChainChange }: ChainQu
   const [started, setStarted] = useState(!!(initialChain?.length || initialQuestion));
   const [currentQ, setCurrentQ] = useState(initialQuestion || "");
   const [viewMode, setViewMode] = useState<"list" | "timeline">("list");
-  // Notify parent on chain changes
+  const notifyChainChange = useCallback(() => {
+    if (started) {
+      onChainChange?.(chain, currentQ);
+    }
+  }, [chain, currentQ, onChainChange, started]);
+
   useEffect(() => {
-    if (started) onChainChange?.(chain, currentQ);
-  }, [chain, currentQ, started]);
+    notifyChainChange();
+  }, [notifyChainChange]);
 
   const startWithRandom = () => {
     const q = STARTER_QUESTIONS[Math.floor(Math.random() * STARTER_QUESTIONS.length)];

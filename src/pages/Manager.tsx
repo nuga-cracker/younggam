@@ -7,22 +7,25 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { loadSessions, type SavedSession } from "@/components/AppSidebar";
+import { applySeoMeta, DEFAULT_SEO_META, loadSeoMeta, saveSeoMeta, type SeoMeta } from "@/lib/seo";
+import { loadSessions, type SavedSession } from "@/lib/sessions";
+import { readStorageJSON, writeStorageJSON } from "@/lib/storage";
 
 const ADMIN_PASSWORD = "77457745";
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 5 * 60 * 1000; // 5분
 const ATTEMPT_WINDOW = 60 * 1000; // 1분 내 시도 횟수 추적
+const LOGIN_ATTEMPTS_KEY = "admin_login_attempts";
+type LoginAttempts = { timestamps: number[]; lockedUntil: number | null };
 
-const getLoginAttempts = (): { timestamps: number[]; lockedUntil: number | null } => {
-  try {
-    const data = localStorage.getItem("admin_login_attempts");
-    return data ? JSON.parse(data) : { timestamps: [], lockedUntil: null };
-  } catch { return { timestamps: [], lockedUntil: null }; }
-};
+const getLoginAttempts = (): LoginAttempts =>
+  readStorageJSON<LoginAttempts>(LOGIN_ATTEMPTS_KEY, {
+    timestamps: [],
+    lockedUntil: null,
+  });
 
-const saveLoginAttempts = (data: { timestamps: number[]; lockedUntil: number | null }) => {
-  localStorage.setItem("admin_login_attempts", JSON.stringify(data));
+const saveLoginAttempts = (data: LoginAttempts) => {
+  writeStorageJSON(LOGIN_ATTEMPTS_KEY, data);
 };
 
 const Manager = () => {
@@ -39,35 +42,12 @@ const Manager = () => {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [selectedSession, setSelectedSession] = useState<SavedSession | null>(null);
 
-  const [seo, setSeo] = useState(() => {
-    const saved = localStorage.getItem("seo_meta");
-    return saved ? JSON.parse(saved) : {
-      title: "younggam",
-      description: "생각을 확장하고 깊이 탐구하는 영감 연구소",
-      ogTitle: "younggam",
-      ogDescription: "생각을 확장하고 깊이 탐구하는 영감 연구소",
-      keywords: "",
-    };
-  });
+  const [seo, setSeo] = useState<SeoMeta>(loadSeoMeta);
   const [seoSaved, setSeoSaved] = useState(false);
 
   const handleSeoSave = () => {
-    localStorage.setItem("seo_meta", JSON.stringify(seo));
-    document.title = seo.title;
-    const setMeta = (sel: string, val: string) => {
-      const el = document.querySelector(sel);
-      if (el) el.setAttribute("content", val);
-    };
-    setMeta('meta[name="description"]', seo.description);
-    setMeta('meta[property="og:title"]', seo.ogTitle);
-    setMeta('meta[property="og:description"]', seo.ogDescription);
-    setMeta('meta[name="twitter:title"]', seo.ogTitle);
-    setMeta('meta[name="twitter:description"]', seo.ogDescription);
-    if (seo.keywords) {
-      let kw = document.querySelector('meta[name="keywords"]');
-      if (!kw) { kw = document.createElement("meta"); kw.setAttribute("name", "keywords"); document.head.appendChild(kw); }
-      kw.setAttribute("content", seo.keywords);
-    }
+    saveSeoMeta(seo);
+    applySeoMeta(seo);
     setSeoSaved(true);
     setTimeout(() => setSeoSaved(false), 2000);
   };
