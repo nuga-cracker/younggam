@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Trash2, Sparkles, Download, Shuffle, Pencil, Brain, MessageCircleQuestion, Menu, Copy, Users, X, Maximize2, LayoutGrid, Cloud, FileJson, FileText, Share2, TrendingUp } from "lucide-react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { Plus, Trash2, Sparkles, Download, Shuffle, Pencil, Brain, MessageCircleQuestion, Copy, Users, X, Maximize2, LayoutGrid, Cloud, FileJson, FileText, Share2, TrendingUp } from "lucide-react";
 
 import { toPng } from "html-to-image";
 import { Button } from "@/components/ui/button";
@@ -14,8 +14,9 @@ import ChainQuestion from "@/components/ChainQuestion";
 import ThemeToggle from "@/components/ThemeToggle";
 import StatsDashboard from "@/components/StatsDashboard";
 import OnboardingGuide from "@/components/OnboardingGuide";
-import AppSidebar, { SavedSession, loadSessions, saveSessions, loadCustomCategories, saveCustomCategories } from "@/components/AppSidebar";
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
+import AppSidebar from "@/components/AppSidebar";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { loadCustomCategories, loadSessions, saveCustomCategories, saveSessions, type SavedSession, type ThoughtItem } from "@/lib/sessions";
 
 const MAX_LENGTH = 20;
 
@@ -69,6 +70,19 @@ const pickRandom = <T,>(arr: T[], count: number): T[] => {
 };
 
 const genId = () => crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`;
+type VizView = "mindmap" | "affinity" | "wordcloud";
+type ExportableThought = string | ThoughtItem;
+type VisualizationOption = {
+  key: VizView;
+  label: string;
+  icon: typeof Brain;
+};
+
+const VISUALIZATION_OPTIONS: VisualizationOption[] = [
+  { key: "mindmap", label: "마인드맵", icon: Brain },
+  { key: "affinity", label: "어피니티", icon: LayoutGrid },
+  { key: "wordcloud", label: "워드클라우드", icon: Cloud },
+];
 
 const Index = () => {
   const [sessions, setSessions] = useState<SavedSession[]>(loadSessions);
@@ -76,11 +90,11 @@ const Index = () => {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
   const [keyword, setKeyword] = useState("");
-  const [thoughts, setThoughts] = useState<{ text: string; member?: string }[]>([]);
+  const [thoughts, setThoughts] = useState<ThoughtItem[]>([]);
   const [newThought, setNewThought] = useState("");
   const [showMap, setShowMap] = useState(false);
   const [mapModalOpen, setMapModalOpen] = useState(false);
-  const [vizView, setVizView] = useState<"mindmap" | "affinity" | "wordcloud">("mindmap");
+  const [vizView, setVizView] = useState<VizView>("mindmap");
   const [keywordLocked, setKeywordLocked] = useState(false);
   const [tab, setTab] = useState("manual");
   const [mode, setMode] = useState("mindmap");
@@ -93,8 +107,6 @@ const Index = () => {
   const [selectedMember, setSelectedMember] = useState<string>("");
   const [chainData, setChainData] = useState<{ question: string; answer: string }[]>([]);
   const [chainCurrentQ, setChainCurrentQ] = useState("");
-
-  const { toggleSidebar } = useSidebar();
 
   // Persist sessions
   useEffect(() => { saveSessions(sessions); }, [sessions]);
@@ -132,7 +144,11 @@ const Index = () => {
   const saveCurrentSession = useCallback(() => {
     const isChain = mode === "chain";
     const activeKeyword = isChain ? (chainCurrentQ || "꼬리질문") : (tab === "manual" ? keyword : randomKeyword);
-    const savedThoughts = isChain ? chainData.map((c) => c.answer) : (tab === "manual" ? thoughts.map((t) => t.text) : randomThoughts);
+    const savedThoughts = isChain
+      ? chainData.map((c) => ({ text: c.answer }))
+      : tab === "manual"
+        ? thoughts
+        : randomThoughts.map((text) => ({ text }));
     if (!activeKeyword.trim() && savedThoughts.length === 0) return;
 
     const sessionTitle = isChain ? (chainData[0]?.question?.slice(0, 20) || "꼬리질문") : activeKeyword;
@@ -180,7 +196,7 @@ const Index = () => {
     setActiveSessionId(session.id);
     setMode(session.type === "chain" ? "chain" : "mindmap");
     setKeyword(session.keyword);
-    setThoughts(session.thoughts.map((t) => typeof t === "string" ? { text: t } : t));
+    setThoughts(session.thoughts);
     setKeywordLocked(!!session.keyword);
     setShowMap(false);
     if (session.type === "chain" && session.chainData) {
@@ -254,6 +270,50 @@ const Index = () => {
     setShowMap(false);
   };
 
+  const handleChainChange = useCallback((chain: { question: string; answer: string }[], currentQ: string) => {
+    setChainData(chain);
+    setChainCurrentQ(currentQ);
+  }, []);
+
+  const visualization = useMemo(() => {
+    if (vizView === "mindmap") {
+      return (
+        <CodeMindMap
+          keyword={activeKeyword}
+          thoughts={activeThoughts}
+          onEditKeyword={(value) => {
+            if (tab === "manual") {
+              setKeyword(value);
+            } else {
+              setRandomKeyword(value);
+            }
+          }}
+          onEditThought={(index, value) => {
+            if (tab === "manual") {
+              setThoughts((prev) =>
+                prev.map((thought, currentIndex) =>
+                  currentIndex === index ? { ...thought, text: value } : thought,
+                ),
+              );
+            } else {
+              setRandomThoughts((prev) =>
+                prev.map((thought, currentIndex) =>
+                  currentIndex === index ? value : thought,
+                ),
+              );
+            }
+          }}
+        />
+      );
+    }
+
+    if (vizView === "affinity") {
+      return <AffinityDiagram keyword={activeKeyword} thoughts={activeThoughts} />;
+    }
+
+    return <WordCloud keyword={activeKeyword} thoughts={activeThoughts} />;
+  }, [activeKeyword, activeThoughts, tab, vizView, setKeyword, setRandomKeyword, setThoughts, setRandomThoughts]);
+
   const removeThought = (index: number) => {
     setThoughts((prev) => prev.filter((_, i) => i !== index));
     setShowMap(false);
@@ -316,10 +376,16 @@ const Index = () => {
 
   const saveMarkdown = () => {
     const lines = [`# ${activeKeyword}`, ""];
-    const items = tab === "manual" ? thoughts : randomThoughts.map((t) => ({ text: t }));
-    items.forEach((t: any) => {
-      const member = t.member ? ` *(${t.member})*` : "";
-      lines.push(`- ${t.text || t}${member}`);
+    const items: ExportableThought[] =
+      tab === "manual" ? thoughts : randomThoughts.map((text) => ({ text }));
+    items.forEach((item) => {
+      if (typeof item === "string") {
+        lines.push(`- ${item}`);
+        return;
+      }
+
+      const member = item.member ? ` *(${item.member})*` : "";
+      lines.push(`- ${item.text}${member}`);
     });
     lines.push("", `> Exported from Inspiration Lab — ${new Date().toLocaleDateString("ko-KR")}`);
     const blob = new Blob([lines.join("\n")], { type: "text/markdown" });
@@ -631,17 +697,13 @@ const Index = () => {
                 <div className="space-y-3 mt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                   {/* View switcher */}
                   <div className="flex flex-wrap gap-1.5">
-                    {[
-                      { key: "mindmap", label: "마인드맵", icon: Brain },
-                      { key: "affinity", label: "어피니티", icon: LayoutGrid },
-                      { key: "wordcloud", label: "워드클라우드", icon: Cloud },
-                    ].map(({ key, label, icon: Icon }) => (
+                    {VISUALIZATION_OPTIONS.map(({ key, label, icon: Icon }) => (
                       <button
                         key={key}
-                        onClick={() => setVizView(key as any)}
-                        className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors font-semibold ${
-                          vizView === key
-                            ? "bg-primary text-primary-foreground border-primary"
+                       onClick={() => setVizView(key)}
+                       className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors font-semibold ${
+                         vizView === key
+                           ? "bg-primary text-primary-foreground border-primary"
                             : "bg-muted/50 text-muted-foreground border-border/50 hover:border-primary/50 hover:text-foreground"
                         }`}
                         style={{ fontFamily: "'Pretendard', system-ui, sans-serif" }}
@@ -661,10 +723,7 @@ const Index = () => {
                     >
                       <Maximize2 className="h-4 w-4" />
                     </Button>
-                    {vizView === "mindmap" && <CodeMindMap keyword={activeKeyword} thoughts={activeThoughts} onEditKeyword={(t) => { if (tab === "manual") { setKeyword(t); } else { setRandomKeyword(t); } }} onEditThought={(i, t) => { if (tab === "manual") { setThoughts((prev) => prev.map((th, idx) => idx === i ? { ...th, text: t } : th)); } else { setRandomThoughts((prev) => prev.map((th, idx) => idx === i ? t : th)); } }} />}
-                    {vizView === "affinity" && <AffinityDiagram keyword={activeKeyword} thoughts={activeThoughts} />}
-                    {vizView === "wordcloud" && <WordCloud keyword={activeKeyword} thoughts={activeThoughts} />}
-                    {vizView === "wordcloud" && <WordCloud keyword={activeKeyword} thoughts={activeThoughts} />}
+                    {visualization}
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <Button onClick={savePng} variant="outline" className="gap-2 h-10 rounded-xl text-xs">
@@ -697,9 +756,7 @@ const Index = () => {
                         {vizView === "wordcloud" && "워드클라우드"}
                       </DialogTitle>
                       <div className="flex-1 overflow-auto border-2 border-border/40 rounded-2xl p-8 bg-card">
-                        {vizView === "mindmap" && <CodeMindMap keyword={activeKeyword} thoughts={activeThoughts} onEditKeyword={(t) => { if (tab === "manual") { setKeyword(t); } else { setRandomKeyword(t); } }} onEditThought={(i, t) => { if (tab === "manual") { setThoughts((prev) => prev.map((th, idx) => idx === i ? { ...th, text: t } : th)); } else { setRandomThoughts((prev) => prev.map((th, idx) => idx === i ? t : th)); } }} />}
-                        {vizView === "affinity" && <AffinityDiagram keyword={activeKeyword} thoughts={activeThoughts} />}
-                        {vizView === "wordcloud" && <WordCloud keyword={activeKeyword} thoughts={activeThoughts} />}
+                        {visualization}
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -712,10 +769,7 @@ const Index = () => {
                 key={activeSessionId || "new"}
                 initialChain={chainData.length > 0 ? chainData : undefined}
                 initialQuestion={chainCurrentQ || undefined}
-                onChainChange={(chain, currentQ) => {
-                  setChainData(chain);
-                  setChainCurrentQ(currentQ);
-                }}
+                onChainChange={handleChainChange}
               />
             </TabsContent>
 

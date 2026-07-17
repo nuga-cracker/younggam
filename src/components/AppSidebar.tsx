@@ -3,6 +3,8 @@ import { Brain, MessageCircleQuestion, Search, Plus, Trash2, FileText, Tag, Down
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { escapeCSV } from "@/lib/csv";
+import type { SavedSession } from "@/lib/sessions";
 import {
   Sidebar,
   SidebarContent,
@@ -15,44 +17,6 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-
-export interface SavedSession {
-  id: string;
-  title: string;
-  type: "mindmap" | "chain";
-  category?: string;
-  keyword: string;
-  thoughts: string[];
-  chainData?: { question: string; answer: string }[];
-  createdAt: number;
-}
-
-const SESSIONS_KEY = "inspiration-sessions";
-const CATEGORIES_KEY = "inspiration-categories";
-
-export const loadSessions = (): SavedSession[] => {
-  try {
-    const raw = localStorage.getItem(SESSIONS_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return [];
-};
-
-export const saveSessions = (sessions: SavedSession[]) => {
-  localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
-};
-
-export const loadCustomCategories = (): string[] => {
-  try {
-    const raw = localStorage.getItem(CATEGORIES_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return [];
-};
-
-export const saveCustomCategories = (cats: string[]) => {
-  localStorage.setItem(CATEGORIES_KEY, JSON.stringify(cats));
-};
 
 interface AppSidebarProps {
   activeSessionId: string | null;
@@ -97,7 +61,14 @@ const AppSidebar = ({
   const exportCSV = () => {
     const header = "제목,유형,분야,키워드,생각들,생성일";
     const rows = sessions.map((s) =>
-      [s.title, s.type === "mindmap" ? "마인드맵" : "꼬리질문", s.category || "미분류", s.keyword, `"${s.thoughts.join(", ")}"`, new Date(s.createdAt).toISOString().slice(0, 10)].join(",")
+      [
+        escapeCSV(s.title),
+        escapeCSV(s.type === "mindmap" ? "마인드맵" : "꼬리질문"),
+        escapeCSV(s.category || "미분류"),
+        escapeCSV(s.keyword),
+        escapeCSV(s.thoughts.map((t) => t.text).join(", ")),
+        escapeCSV(new Date(s.createdAt).toISOString().slice(0, 10)),
+      ].join(",")
     );
     const bom = "\uFEFF";
     downloadFile(bom + [header, ...rows].join("\n"), `inspiration-lab-${new Date().toISOString().slice(0, 10)}.csv`, "text/csv;charset=utf-8");
@@ -126,7 +97,7 @@ const AppSidebar = ({
       (s) =>
         s.title.toLowerCase().includes(q) ||
         s.keyword.toLowerCase().includes(q) ||
-        s.thoughts.some((t) => t.toLowerCase().includes(q))
+        s.thoughts.some((t) => t.text.toLowerCase().includes(q))
     );
   }, [sessions, search]);
 
